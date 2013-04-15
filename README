@@ -4,8 +4,8 @@ by Adam Stambler
 This repository contains the code the Spectrolab PCL code sprint.
 
 There will be a driver for the Spectrolab lidar camera along with a 3D 
-viewer for capturing displaying data from the camera.
+viewer for capturing  and displaying data from the camera.
 
-The latest version of this repository can befound on :
+The latest version of this repository can be found on :
 https://github.com/adasta/spectrolab
 
