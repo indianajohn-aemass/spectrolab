@@ -29,7 +29,7 @@ include_directories(${EIGEN_INCLUDES})
 
 FIND_PACKAGE( Boost 1.48 COMPONENTS 
 					program_options filesystem thread
-					serialization python 
+					serialization system 
 					REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 include_directories( include)
@@ -59,12 +59,20 @@ endif()
 
 
 #Project specific stuff
-	
-add_executable(spectrolab src/spectrolab.cpp)
-target_link_libraries(spectrolab ${SPECTROLAB_DEP_LIBRARIES})
+add_library(spectrolab src/lidar_driver.cpp)
+target_link_libraries( spectrolab  ${Boost_LIBRARIES} )
+
+add_library(pcl_spectrolab_io  src/spectrolab_io.cpp)
+target_link_libraries( pcl_spectrolab_io 
+										${SPECTROLAB_DEP_LIBRARIES} 
+										spectrolab)
+
+
+add_executable(spectrolab_grabframe tools/spectrolab_grabframe.cpp)
+target_link_libraries(spectrolab_grabframe ${SPECTROLAB_DEP_LIBRARIES} spectrolab pcl_spectrolab_io)
 
 ##################### Installation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-INSTALL(TARGETS  
+INSTALL(TARGETS  spectrolab pcl_spectrolab_io
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
