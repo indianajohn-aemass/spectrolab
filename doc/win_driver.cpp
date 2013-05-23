@@ -130,412 +130,410 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam) {
-        HWND hButtonStart,hButtonStop, hCombo,hButtonSend, hEdit, hList, hScroll, hStatic,hConsole;
-        int Index;
-		int	size=0;
-		char instruct[5]= {0x27,0x00,0x00};
-		hConsole=GetConsoleWindow();
-		LONG lStyle;
-		TCHAR Item[256]={-1};
-		LPSTR tBuf[30];
-		char padapters[5000];
-		PIP_ADAPTER_INFO adapters;
-		MIB_IPNETROW ArpRow;
-		ULONG AdapIndex;
-		ULONG bufflen;
-		BYTE mac[8]={0x00,0x0F,0xCC,0x23,0x00,0x01};
-		int i;
-		int size1 = 2;//
-				
-        switch(Message){
-				case WM_SOCKMISC:{
-							if(WSAGETSELECTERROR(lParam))
-								{	
-									MessageBox(hwnd,
-										(LPCWSTR)"Connection to server failed",
-										L"Error",
-										MB_OK|MB_ICONERROR);
-									SendMessage(hwnd,WM_DESTROY,NULL,NULL);
-									break;
-								}
-							switch(WSAGETSELECTEVENT(lParam))
-							{
-								case FD_READ:
-								{
-									char szIncoming[1024];
-									ZeroMemory(szIncoming,sizeof(szIncoming));
+	HWND hButtonStart,hButtonStop, hCombo,hButtonSend, hEdit, hList, hScroll, hStatic,hConsole;
+	int Index;
+	int	size=0;
+	char instruct[5]= {0x27,0x00,0x00};
+	hConsole=GetConsoleWindow();
+	LONG lStyle;
+	TCHAR Item[256]={-1};
+	LPSTR tBuf[30];
+	char padapters[5000];
+	PIP_ADAPTER_INFO adapters;
+	MIB_IPNETROW ArpRow;
+	ULONG AdapIndex;
+	ULONG bufflen;
+	BYTE mac[8]={0x00,0x0F,0xCC,0x23,0x00,0x01};
+	int i;
+	int size1 = 2;//
 
-									int inDataLength=recv(sockrcv,
-										(char*)szIncoming,
-										sizeof(szIncoming)/sizeof(szIncoming[0]),
-										0);
-									std::cout<<"received ";
-									for(int i=0;i<12;i++){
-										std::cout<<std::hex<<(unsigned __int16)szIncoming[i];
-										if(i%2==1)
-											std::cout<<" ";
-									}
-									std::cout<<" from adc"<<std::endl;
-									std::cout<<"\t received ";
-									for(int i=0;i< inDataLength-12;i++){
-										std::cout<<std::hex<<(unsigned __int16)szIncoming[i+12]<<" ";
-									}
-									std::cout<<"from SPI"<<std::endl;
-								}
-								break;
-							}	
-						}break;
-					case WM_SOCKIMG:{
-							if(WSAGETSELECTERROR(lParam))
-								{	
-									MessageBox(hwnd,
-										(LPCWSTR)"Connection to server failed",
-										L"Error",                                        //// have to work on
-										MB_OK|MB_ICONERROR);
-									SendMessage(hwnd,WM_DESTROY,NULL,NULL);
-									break;
-								}
-							switch(WSAGETSELECTEVENT(lParam))
-							{
-								case FD_READ:
-								{
-									char szIncoming[1024];
-									ZeroMemory(szIncoming,sizeof(szIncoming));
+	switch(Message){
+		case WM_SOCKMISC:{
+					if(WSAGETSELECTERROR(lParam))
+						{
+							MessageBox(hwnd,
+								(LPCWSTR)"Connection to server failed",
+								L"Error",
+								MB_OK|MB_ICONERROR);
+							SendMessage(hwnd,WM_DESTROY,NULL,NULL);
+							break;
+						}
+					switch(WSAGETSELECTEVENT(lParam))
+					{
+						case FD_READ:
+						{
+							char szIncoming[1024];
+							ZeroMemory(szIncoming,sizeof(szIncoming));
 
-									int inDataLength=recv(sockimg,
-										(char*)szIncoming,
-										sizeof(szIncoming)/sizeof(szIncoming[0]),///////////////////////////////////////////
-										0);
-									if(inDataLength!=1024){
-										MessageBox(hwnd,
-										(LPCWSTR)"Frame Packet not 1024 bytes long",
-										L"Error",                                        //// image save line by line at file "Frames/Frame0000" where the
-										MB_OK|MB_ICONERROR);}							//// 0's are replaced by frame number
-									if((szIncoming[0]==(char)152)&&(szIncoming[1]==(char)186)&&(szIncoming[2]==(char)220)&&(szIncoming[3]==(char)254)){//98 BA DC FE
-										if(!(linecount<127))
-										{	fclose(fw);
-											filepath[0]='\0';
-											fwrite(filepath,1,1,fw);
-											fclose(fw);
-											/////////////////////////////////////////////////////////////////file.close();
-											FbufCount=0;
-											convBuff++;
-										
+							int inDataLength=recv(sockrcv,
+								(char*)szIncoming,
+								sizeof(szIncoming)/sizeof(szIncoming[0]),
+								0);
+							std::cout<<"received ";
+							for(int i=0;i<12;i++){
+								std::cout<<std::hex<<(unsigned __int16)szIncoming[i];
+								if(i%2==1)
+									std::cout<<" ";
+							}
+							std::cout<<" from adc"<<std::endl;
+							std::cout<<"\t received ";
+							for(int i=0;i< inDataLength-12;i++){
+								std::cout<<std::hex<<(unsigned __int16)szIncoming[i+12]<<" ";
+							}
+							std::cout<<"from SPI"<<std::endl;
+						}
+						break;
+					}
+				}break;
+		case WM_SOCKIMG:{
+				if(WSAGETSELECTERROR(lParam))
+					{
+						MessageBox(hwnd,
+							(LPCWSTR)"Connection to server failed",
+							L"Error",                                        //// have to work on
+							MB_OK|MB_ICONERROR);
+						SendMessage(hwnd,WM_DESTROY,NULL,NULL);
+						break;
+					}
+				switch(WSAGETSELECTEVENT(lParam))
+				{
+					case FD_READ:
+					{
+						char szIncoming[1024];
+						ZeroMemory(szIncoming,sizeof(szIncoming));
 
-											Filename[5]=(char)((convBuff)/1000+48);
-											Filename[6]=(char)(((convBuff)%1000)/100+48);
-											Filename[7]=(char)((((convBuff)%1000)%100)/10+48);
-											Filename[8]=(char)((((convBuff)%1000)%100)%10+48);
-											//std::ofstream file;
-											//delete(shortFlip);
-											std::cout<<"received frame"<<std::endl;
-											fw=fopen(Filename,"wb");//file.open(Filename,std::ios::out);//file.open(Filename,std::ios::binary);
-											linecount=0;
-										dwordFlip(szIncoming);
-										//for(int i =0;i<1025;i++){
-											fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
-											//FrameBuff[FbufCount]=(char)szIncoming[i];
-											//FbufCount++;
-										//}
-										}
-										else{
-											fclose(fw);
-											filepath[0]='\0';
-											fwrite(filepath,1,1,fw);
-											fclose(fw);//file.close();
-											FbufCount=0;
-											Filename[5]=(char)((convBuff)/1000+48);
-											Filename[6]=(char)(((convBuff)%1000)/100+48);
-											Filename[7]=(char)((((convBuff)%1000)%100)/10+48);
-											Filename[8]=(char)((((convBuff)%1000)%100)%10+48);
-											//std::ofstream file;
-											//delete(shortFlip);
-											fw=fopen(Filename,"wb");//file.open(Filename,std::ios::out);//file.open(Filename,std::ios::binary);
-											linecount=0;
-										dwordFlip(szIncoming);
-										//for(int i =0;i<1025;i++){
-											fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
-											//FrameBuff[FbufCount]=(char)szIncoming[i];
-											//FbufCount++;
-										//}
-										}
-										
-									}
-									else{if(linecount<127){
-									dwordFlip(szIncoming);
-									//for(int i =0;i<1025;i++){
-										fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
-										//FrameBuff[FbufCount]=(char)szIncoming[i];
-										//FbufCount++;}
-									linecount++;}
-									else{
-										//std::cout<<"over size"<<std::endl;
-									}}
-									
-									
-								}
-								break;
-							}	
-						}break;
+						int inDataLength=recv(sockimg,
+							(char*)szIncoming,
+							sizeof(szIncoming)/sizeof(szIncoming[0]),///////////////////////////////////////////
+							0);
+						if(inDataLength!=1024){
+							MessageBox(hwnd,
+							(LPCWSTR)"Frame Packet not 1024 bytes long",
+							L"Error",                                        //// image save line by line at file "Frames/Frame0000" where the
+							MB_OK|MB_ICONERROR);}							//// 0's are replaced by frame number
+						if((szIncoming[0]==(char)152)&&(szIncoming[1]==(char)186)&&(szIncoming[2]==(char)220)&&(szIncoming[3]==(char)254)){//98 BA DC FE
+							if(!(linecount<127))
+							{	fclose(fw);
+								filepath[0]='\0';
+								fwrite(filepath,1,1,fw);
+								fclose(fw);
+								/////////////////////////////////////////////////////////////////file.close();
+								FbufCount=0;
+								convBuff++;
 
 
-                case WM_CREATE:
-								
-								freopen("CON","r",stdin);
+								Filename[5]=(char)((convBuff)/1000+48);
+								Filename[6]=(char)(((convBuff)%1000)/100+48);
+								Filename[7]=(char)((((convBuff)%1000)%100)/10+48);
+								Filename[8]=(char)((((convBuff)%1000)%100)%10+48);
+								//std::ofstream file;
+								//delete(shortFlip);
+								std::cout<<"received frame"<<std::endl;
+								fw=fopen(Filename,"wb");//file.open(Filename,std::ios::out);//file.open(Filename,std::ios::binary);
+								linecount=0;
+							dwordFlip(szIncoming);
+							//for(int i =0;i<1025;i++){
+								fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
+								//FrameBuff[FbufCount]=(char)szIncoming[i];
+								//FbufCount++;
+							//}
+							}
+							else{
+								fclose(fw);
+								filepath[0]='\0';
+								fwrite(filepath,1,1,fw);
+								fclose(fw);//file.close();
+								FbufCount=0;
+								Filename[5]=(char)((convBuff)/1000+48);
+								Filename[6]=(char)(((convBuff)%1000)/100+48);
+								Filename[7]=(char)((((convBuff)%1000)%100)/10+48);
+								Filename[8]=(char)((((convBuff)%1000)%100)%10+48);
+								//std::ofstream file;
+								//delete(shortFlip);
+								fw=fopen(Filename,"wb");//file.open(Filename,std::ios::out);//file.open(Filename,std::ios::binary);
+								linecount=0;
+							dwordFlip(szIncoming);
+							//for(int i =0;i<1025;i++){
+								fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
+								//FrameBuff[FbufCount]=(char)szIncoming[i];
+								//FbufCount++;
+							//}
+							}
+
+						}
+						else{if(linecount<127){
+						dwordFlip(szIncoming);
+						//for(int i =0;i<1025;i++){
+							fwrite(szIncoming,1024,1,fw);//file <<(char)szIncoming[i];
+							//FrameBuff[FbufCount]=(char)szIncoming[i];
+							//FbufCount++;}
+						linecount++;}
+						else{
+							//std::cout<<"over size"<<std::endl;
+						}}
+
+
+					}
+					break;
+				}
+			}break;
+
+		case WM_CREATE:
+
+						freopen("CON","r",stdin);
+						size=0;
+						bufflen=sizeof(padapters);
+						 GetAdaptersInfo((PIP_ADAPTER_INFO)padapters,&bufflen);
+						for(adapters=(PIP_ADAPTER_INFO)padapters;adapters;adapters=adapters->Next){
+							std::cout<<size<<" ) "<<adapters->Description<<std::endl;
+							size++;
+						}
+						std::cout<<"choose the number of the adapter that you would like to use"<<std::endl;
+						std::cin>>size;
+						adapters=(PIP_ADAPTER_INFO)padapters;
+						size=0;
+						for(i =0;i<size;i++)
+							adapters=adapters->Next;
+							//GetAdapterIndex((LPWSTR)adapters->AdapterName,&AdapIndex);
+							ArpRow.dwIndex=adapters->Index;
+							ArpRow.dwType=(DWORD)MIB_IPNET_TYPE_STATIC;
+							ArpRow.dwAddr=(DWORD)inet_addr(tx_ip_address);
+							ArpRow.dwPhysAddrLen=(DWORD)6;
+							ArpRow.bPhysAddr[0]=(UCHAR)mac[0];
+							ArpRow.bPhysAddr[1]=(UCHAR)mac[1];
+							ArpRow.bPhysAddr[2]=(UCHAR)mac[2];
+							ArpRow.bPhysAddr[3]=(UCHAR)mac[3];
+							ArpRow.bPhysAddr[4]=(UCHAR)mac[4];
+							ArpRow.bPhysAddr[5]=(UCHAR)mac[5];
+							i=(int)CreateIpNetEntry(&ArpRow);
+							if(!(i==0|i==5010)){
+								std::cout<<i<<std::endl;
+						}
+
+
+
+
+						hConsole=GetConsoleWindow();
+						lStyle = GetWindowLong(hConsole, GWL_STYLE);
+						lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
+						SetWindowLong(hConsole, GWL_STYLE, lStyle);
+
+
+						SetParent(hConsole,hwnd);
+						SetWindowPos(hConsole,HWND_TOP,0,0,690,295,SWP_SHOWWINDOW);
+						UpdateWindow(hConsole);
+
+						if(InitWinsockListener(hwnd)==-1){
+							std::cout<<"Winsock Listener Failed"<<std::endl;
+							exit(1);//// research exit codes
+						}
+
+						if(InitWinsockListenerIMG(hwnd)==-1){
+							std::cout<<"Winsock Listener Failed"<<std::endl;
+							exit(1);//// research exit codes
+						}
+
+				hButtonStart = CreateWindowEx(
+						NULL, L"Button", L"Start HP", WS_BORDER | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+						455, 305, 80, 30,
+						hwnd, (HMENU)ID_STARTHP,
+						ghInstance,
+						NULL);
+				hButtonSend = CreateWindowEx(
+						NULL,L"Button",L"Start LP",WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
+						535, 305, 80, 30,
+						hwnd,(HMENU)ID_STARTLP,
+						ghInstance,
+						NULL);
+				hButtonStop = CreateWindowEx(
+						NULL,L"Button",L"Stop", WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
+						605, 305, 60, 30,
+						hwnd,(HMENU)ID_STOP,
+						ghInstance,
+						NULL);
+				hButtonSend = CreateWindowEx(
+						NULL,L"Button",L"Send",WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
+						300, 305, 155, 30,
+						hwnd,(HMENU)ID_SEND,
+						ghInstance,
+						NULL);
+				hCombo  = CreateWindowEx(
+						NULL,
+						L"ComboBox",
+						L"Commands",
+						WS_BORDER | WS_CHILD | WS_VISIBLE |CBS_DROPDOWN|CBS_HASSTRINGS |WS_OVERLAPPED,
+						0, 305, 300, 250,
+						hwnd,NULL,
+						ghInstance,
+						NULL);
+				combo=hCombo;
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x27 00 00");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x21");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x1A");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x15");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x17");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x12");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x11");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x18");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x16");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x13");
+				SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x10");
+				SendMessage(hCombo,CB_SETCURSEL,0,0);
+				break;
+		case WM_COMMAND:
+				switch(HIWORD(wParam)){
+						case CBN_SELENDOK:
+								Index = SendMessage((HWND) lParam,(UINT) CB_GETCURSEL,(WPARAM)0,(LPARAM)0);
+								memset( Item, 0,256 );
+								(TCHAR) SendMessage((HWND)lParam,(UINT)CB_GETLBTEXT,(WPARAM)Index,(LPARAM)Item);
 								size=0;
-								bufflen=sizeof(padapters);
-								 GetAdaptersInfo((PIP_ADAPTER_INFO)padapters,&bufflen);
-								for(adapters=(PIP_ADAPTER_INFO)padapters;adapters;adapters=adapters->Next){
-									std::cout<<size<<" ) "<<adapters->Description<<std::endl;
+								for(int i=0;i<256;i++){
+									if(Item[i]==(TCHAR)NULL)
+										break;
 									size++;
 								}
-								std::cout<<"choose the number of the adapter that you would like to use"<<std::endl;
-								std::cin>>size;
-								adapters=(PIP_ADAPTER_INFO)padapters;
+								convert(Item);
+								size=removeWhite(mess,size);
+
+								size=parse(mess,size);
+
+								copy(mess,sendBuffer,size);
+								sendBuffer[size]=NULL;
+								break;
+
+						case CBN_EDITCHANGE:
+								memset( Item, 0,256 );
+								GetWindowText((HWND)lParam,(LPWSTR) Item,(UINT)30);
 								size=0;
-								for(i =0;i<size;i++)
-									adapters=adapters->Next;
-									//GetAdapterIndex((LPWSTR)adapters->AdapterName,&AdapIndex);
-									ArpRow.dwIndex=adapters->Index;
-									ArpRow.dwType=(DWORD)MIB_IPNET_TYPE_STATIC;
-									ArpRow.dwAddr=(DWORD)inet_addr(tx_ip_address);
-									ArpRow.dwPhysAddrLen=(DWORD)6;
-									ArpRow.bPhysAddr[0]=(UCHAR)mac[0];
-									ArpRow.bPhysAddr[1]=(UCHAR)mac[1];
-									ArpRow.bPhysAddr[2]=(UCHAR)mac[2];
-									ArpRow.bPhysAddr[3]=(UCHAR)mac[3];
-									ArpRow.bPhysAddr[4]=(UCHAR)mac[4];
-									ArpRow.bPhysAddr[5]=(UCHAR)mac[5];
-									i=(int)CreateIpNetEntry(&ArpRow);
-									if(!(i==0|i==5010)){
-										std::cout<<i<<std::endl;
-								}
-
-
-
-
-								hConsole=GetConsoleWindow();
-								lStyle = GetWindowLong(hConsole, GWL_STYLE);
-								lStyle &= ~(WS_CAPTION | WS_THICKFRAME | WS_MINIMIZE | WS_MAXIMIZE | WS_SYSMENU);
-								SetWindowLong(hConsole, GWL_STYLE, lStyle);
-
-								
-								SetParent(hConsole,hwnd);
-								SetWindowPos(hConsole,HWND_TOP,0,0,690,295,SWP_SHOWWINDOW);
-								UpdateWindow(hConsole);
-								
-								if(InitWinsockListener(hwnd)==-1){
-									std::cout<<"Winsock Listener Failed"<<std::endl;
-									exit(1);//// research exit codes
-								}
-
-								if(InitWinsockListenerIMG(hwnd)==-1){
-									std::cout<<"Winsock Listener Failed"<<std::endl;
-									exit(1);//// research exit codes
-								}
-
-                        hButtonStart = CreateWindowEx(
-                                NULL, L"Button", L"Start HP", WS_BORDER | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                                455, 305, 80, 30,
-                                hwnd, (HMENU)ID_STARTHP,
-                                ghInstance,
-                                NULL);
-						hButtonSend = CreateWindowEx(
-								NULL,L"Button",L"Start LP",WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
-								535, 305, 80, 30,
-								hwnd,(HMENU)ID_STARTLP,
-								ghInstance,
-								NULL);
-						hButtonStop = CreateWindowEx(
-								NULL,L"Button",L"Stop", WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
-								605, 305, 60, 30,
-								hwnd,(HMENU)ID_STOP,
-								ghInstance,
-								NULL);                                             
-						hButtonSend = CreateWindowEx(
-								NULL,L"Button",L"Send",WS_BORDER |WS_CHILD | WS_VISIBLE| BS_PUSHBUTTON,
-								300, 305, 155, 30,
-								hwnd,(HMENU)ID_SEND,
-								ghInstance,
-								NULL);
-                        hCombo  = CreateWindowEx(
-                                NULL,
-                                L"ComboBox",
-                                L"Commands",
-                                WS_BORDER | WS_CHILD | WS_VISIBLE |CBS_DROPDOWN|CBS_HASSTRINGS |WS_OVERLAPPED,
-                                0, 305, 300, 250,
-                                hwnd,NULL,
-                                ghInstance,
-                                NULL);
-						combo=hCombo;
-                                                SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x27 00 00");
-                                                SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x21");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x1A");
-                                                SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x15");
-                                                SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x17");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x12");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x11");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x18");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x16");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x13");
-												SendMessage(hCombo,CB_ADDSTRING,0,(LPARAM)L"0x10");
-												SendMessage(hCombo,CB_SETCURSEL,0,0);
-                
-                        break;
-                case WM_COMMAND:
-                        switch(HIWORD(wParam)){
-                                case CBN_SELENDOK: 
-                                        Index = SendMessage((HWND) lParam,(UINT) CB_GETCURSEL,(WPARAM)0,(LPARAM)0);
-                                        memset( Item, 0,256 );
-                                        (TCHAR) SendMessage((HWND)lParam,(UINT)CB_GETLBTEXT,(WPARAM)Index,(LPARAM)Item);
-										size=0;
-										for(int i=0;i<256;i++){
-											if(Item[i]==(TCHAR)NULL)
-												break;
-											size++;
-										}
-										convert(Item);
-										size=removeWhite(mess,size);
-														
-										size=parse(mess,size);
-														 
-										copy(mess,sendBuffer,size);
-										sendBuffer[size]=NULL; 
-                                        break;
-
-								case CBN_EDITCHANGE:
-										memset( Item, 0,256 );
-										GetWindowText((HWND)lParam,(LPWSTR) Item,(UINT)30);
-										size=0;
-										for(int i=0;i<256;i++){
-											if(Item[i]==(TCHAR)NULL)
-												break;
-											size++;
-										}
-										convert(Item);
-										size=removeWhite(mess,size);
-														  
-										size=parse(mess,size);
-										copy(mess,sendBuffer,size);
-										// sendBuffer[size]=NULL;     //// parse and store text                                                       
+								for(int i=0;i<256;i++){
+									if(Item[i]==(TCHAR)NULL)
 										break;
-                                case BN_CLICKED:{
-										switch(LOWORD(wParam)){
-										case (HMENU) ID_STARTHP :	
-											//int size1 = 2;//
-											mess[0]=0x3A;//
-											mess[1]=-1;
-											udp_sender(mess,size1);//
-											delay(SER_DELAY);//
-											mess[0]=0x3F;//
-											mess[1]=-1;
-											udp_sender(mess,size1);//
-											delay(SER_DELAY);
-											mess[0]=0x21;
-											mess[1]=-1;
-											//mess[1]=0x00;//NULL;
-											//mess[2]=0x00;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x1A;
-											mess[1]=-1;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x15;
-											mess[1]=-1;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x17;
-											mess[1]=-1;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x12;
-											mess[1]=-1;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x11;
-											mess[1]=-1;
-											udp_sender(mess,size1);
-											break;
-										case (HMENU) ID_STARTLP :	
-											size1 = 2;//
-											mess[0]=0x3A;//
-											mess[1]=-1;
-											udp_sender(mess,size1);//
-											delay(SER_DELAY);//
-											mess[0]=0x3F;//
-											udp_sender(mess,size1);//
-											delay(SER_DELAY);
-											mess[0]=0x21;
-											//mess[1]=0x00;//NULL;
-											//mess[2]=0x00;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x15;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x17;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x12;
-											udp_sender(mess,size1);
-											delay(SER_DELAY);
-											mess[0]=0x11;
-											udp_sender(mess,size1);
-											break;
-										case (HMENU) ID_SEND :	//size=GetWindowTextLength(combo)+1;
-											//GetWindowText(combo,(LPWSTR) Item,(UINT)size);
-											if(sendBuffer[0]==-1){
-												MessageBox(hwnd, (LPCWSTR) sendBuffer, TEXT(" is Incorrect Syntax"), MB_OK);
-												break;
-											}//// need to do parsing
-											//MessageBox(hwnd, (LPCWSTR) sendBuffer, TEXT(" is correct Syntax"), MB_OK);
-											size=0;
-											for(int i=0;i<256;i++){
-												if(sendBuffer[i]==-1)
-														break;
-														size++;
-												}		
-																				
-											udp_sender(sendBuffer,size);//udp_staticSend(instruct,size);
-											break;
-										case (HMENU) ID_STOP :	
-											size1 = 2;
-											mess[0]=0x18;
-											mess[1]=-1;
-											udp_sender(mess,size1);//udp_staticSend(instruct,size);
-											delay(SER_DELAY);
-											mess[0]=0x16;
-											mess[1]=-1;
-											udp_sender(mess,size1);//udp_staticSend(instruct,size);
-											delay(SER_DELAY);
-											mess[0]=0x13;
-											mess[1]=-1;
-											udp_sender(mess,size1);//udp_staticSend(instruct,size);
-											delay(SER_DELAY);
-											mess[0]=0x10;
-											mess[1]=-1;
-											udp_sender(mess,size1);//udp_senderStop();
-											break;
-										default:		std::cout<<"nothing"<<std::endl<<wParam<<std::endl<<lParam;
-										}
-										break;}
-																
-						}
-                        break;
-												
-                case WM_CLOSE:
-                        DestroyWindow(hwnd);
-                        break;
-                case WM_DESTROY:
-						file.close();
-                        PostQuitMessage(0);
-                        break;
-                default:
-                         return DefWindowProc(hwnd, Message, wParam, lParam);
-        }
+									size++;
+								}
+								convert(Item);
+								size=removeWhite(mess,size);
 
-        return 0;
+								size=parse(mess,size);
+								copy(mess,sendBuffer,size);
+								// sendBuffer[size]=NULL;     //// parse and store text
+								break;
+						case BN_CLICKED:{
+								switch(LOWORD(wParam)){
+								case (HMENU) ID_STARTHP :
+									//int size1 = 2;//
+									mess[0]=0x3A;//
+									mess[1]=-1;
+									udp_sender(mess,size1);//
+									delay(SER_DELAY);//
+									mess[0]=0x3F;//
+									mess[1]=-1;
+									udp_sender(mess,size1);//
+									delay(SER_DELAY);
+									mess[0]=0x21;
+									mess[1]=-1;
+									//mess[1]=0x00;//NULL;
+									//mess[2]=0x00;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x1A;
+									mess[1]=-1;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x15;
+									mess[1]=-1;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x17;
+									mess[1]=-1;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x12;
+									mess[1]=-1;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x11;
+									mess[1]=-1;
+									udp_sender(mess,size1);
+									break;
+								case (HMENU) ID_STARTLP :
+									size1 = 2;//
+									mess[0]=0x3A;//
+									mess[1]=-1;
+									udp_sender(mess,size1);//
+									delay(SER_DELAY);//
+									mess[0]=0x3F;//
+									udp_sender(mess,size1);//
+									delay(SER_DELAY);
+									mess[0]=0x21;
+									//mess[1]=0x00;//NULL;
+									//mess[2]=0x00;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x15;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x17;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x12;
+									udp_sender(mess,size1);
+									delay(SER_DELAY);
+									mess[0]=0x11;
+									udp_sender(mess,size1);
+									break;
+								case (HMENU) ID_SEND :	//size=GetWindowTextLength(combo)+1;
+									//GetWindowText(combo,(LPWSTR) Item,(UINT)size);
+									if(sendBuffer[0]==-1){
+										MessageBox(hwnd, (LPCWSTR) sendBuffer, TEXT(" is Incorrect Syntax"), MB_OK);
+										break;
+									}//// need to do parsing
+									//MessageBox(hwnd, (LPCWSTR) sendBuffer, TEXT(" is correct Syntax"), MB_OK);
+									size=0;
+									for(int i=0;i<256;i++){
+										if(sendBuffer[i]==-1)
+												break;
+												size++;
+										}
+
+									udp_sender(sendBuffer,size);//udp_staticSend(instruct,size);
+									break;
+								case (HMENU) ID_STOP :
+									size1 = 2;
+									mess[0]=0x18;
+									mess[1]=-1;
+									udp_sender(mess,size1);//udp_staticSend(instruct,size);
+									delay(SER_DELAY);
+									mess[0]=0x16;
+									mess[1]=-1;
+									udp_sender(mess,size1);//udp_staticSend(instruct,size);
+									delay(SER_DELAY);
+									mess[0]=0x13;
+									mess[1]=-1;
+									udp_sender(mess,size1);//udp_staticSend(instruct,size);
+									delay(SER_DELAY);
+									mess[0]=0x10;
+									mess[1]=-1;
+									udp_sender(mess,size1);//udp_senderStop();
+									break;
+								default:		std::cout<<"nothing"<<std::endl<<wParam<<std::endl<<lParam;
+								}
+								break;}
+														
+				}
+				break;
+
+		case WM_CLOSE:
+				DestroyWindow(hwnd);
+				break;
+		case WM_DESTROY:
+				file.close();
+				PostQuitMessage(0);
+				break;
+		default:
+				 return DefWindowProc(hwnd, Message, wParam, lParam);
+	}
+
+	return 0;
 }
 
 int udp_sender(char instruction [],int size){

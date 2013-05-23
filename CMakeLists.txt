@@ -59,17 +59,17 @@ endif()
 
 
 #Project specific stuff
-add_library(spectrolab src/lidar_driver.cpp)
+add_library(spectrolab src/spectroscan_3d.cpp)
 target_link_libraries( spectrolab  ${Boost_LIBRARIES} )
 
 add_library(pcl_spectrolab_io  src/spectrolab_io.cpp)
 target_link_libraries( pcl_spectrolab_io 
-										${SPECTROLAB_DEP_LIBRARIES} 
-										spectrolab)
+							${SPECTROLAB_DEP_LIBRARIES} 
+							spectrolab)
 
 
-add_executable(spectrolab_grabframe tools/spectrolab_grabframe.cpp)
-target_link_libraries(spectrolab_grabframe ${SPECTROLAB_DEP_LIBRARIES} spectrolab pcl_spectrolab_io)
+add_executable(spectroscan3d_grabframe.cpp tools/spectrolab_grabframe.cpp)
+target_link_libraries(spectroscan3d_grabframe.cpp ${SPECTROLAB_DEP_LIBRARIES} spectrolab pcl_spectrolab_io)
 
 ##################### Installation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 INSTALL(TARGETS  spectrolab pcl_spectrolab_io

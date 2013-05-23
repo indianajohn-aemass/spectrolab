@@ -6,6 +6,6 @@
  */
 
 #include <pcl/io/spectrolab_io.h>
-#include <spectrolab/lidar_driver.h>
+#include <spectrolab/spectroscan_3d.h>
 
 

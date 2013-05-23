@@ -12,7 +12,7 @@
 
 
 namespace spectrolab{
-	class LidarCamera;
+	class SpectroScan3D;
 }
 
 namespace pcl{
@@ -64,10 +64,20 @@ namespace pcl{
 		virtual float
 		getFramesPerSecond () const;
 
+		struct Settings{
+		//	float
+			bool load(std::string fname);
+			void save(std::string ofname);
+		};
+
+		void setSettings( const Settings settings);
+
 
 	private:
 		void init();
-		spectrolab::LidarCamera* camera_;
+		spectrolab::SpectroScan3D* camera_;
+		Settings settings_;
+
 	};
 }
 

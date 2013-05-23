@@ -9,3 +9,17 @@ viewer for capturing  and displaying data from the camera.
 The latest version of this repository can be found on :
 https://github.com/adasta/spectrolab
 
+
+
+== Setup ==
+To use the software, the computer must be connected to the scanner
+such that the computer has the IP address 192.168.0.121.  You need
+to specify how to find the scanner using arp
+
+sudo arp -s 192.168.0.27 00:0F:CC:23:00:01
+
+To test the scanner, you can grab a single frame using 
+
+sudo ./spectroscan3d_grabframe frame.png
+
+The scanner must be run as sudo in order to access the needed ports.

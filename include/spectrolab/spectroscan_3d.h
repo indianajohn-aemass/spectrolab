@@ -75,8 +75,11 @@ namespace spectrolab{
 	class SpectroScan3D{
 		public:
 
-		SpectroScan3D(const boost::asio::ip::address& ipAddress=
+		SpectroScan3D(const boost::asio::ip::address& scanner_address=
 				boost::asio::ip::address::from_string("192.168.0.27"));
+
+		~SpectroScan3D();
+
 		//define callback signature typedefs
 		typedef void (sig_camera_cb) (const RangeImgaePtr&, const IntensityImagePtr&);
 
@@ -146,28 +149,49 @@ namespace spectrolab{
 
 		void writeFirmware(FirmwareWriteCommands cmd, uint8_t data);
 
-		private:
-			int range_img_width_;  //256
-			int range_img_height_; //128
+	private:
 
-		  boost::asio::streambuf img_buffer_;
+		void send( uint8_t* data, size_t size);
 
-	      boost::thread grabber_thread_;
-	      typedef boost::asio::ip::udp::socket SocketT;
+		bool running_;
+		boost::thread io_thread_;
+		typedef boost::asio::ip::udp::socket SocketT;
 
-	      boost::shared_ptr<SocketT> img_data_socket_;
-	      boost::shared_ptr<SocketT> cmd_socket_;
+		uint8_t img_buffer_[1024];
+		uint8_t cmd_buffer_[250];
 
-	      boost::asio::io_service img_io_service_;
-	      boost::asio::io_service cmd_io_service_;
+		boost::shared_ptr<SocketT> img_data_socket_;
+		boost::shared_ptr<SocketT> cmd_tx_socket_;
+		boost::shared_ptr<SocketT> cmd_rx_socket_;
 
-	      static const int IMAGE_DATA_PORT;
-	      static const int COMMAND_PORT;
-	      static const uint16_t IMG_FRAME_DELIMITER_B1; //Image frame delimiter byte 1
-	      static const uint16_t IMG_FRAME_DELIMITER_B2; //Image frame delimiter byte 2
+		boost::asio::io_service io_service_;
+		boost::asio::io_service::work io_worker_;
 
-	      void handleImgFrame( const boost::system::error_code& err);
+		//Communication constants
+		static const int IMG_RX_PORT_COMPUTER;
+		static const int CMD_RX_PORT_COMPUTER;
+		static const int CMD_TX_PORT_SCANNER;
+		static const int CMD_TX_PORT_COMPUTER;
 
+		static const int FIRMWARE_VERSION;
+
+		static const uint16_t IMG_FRAME_DELIMITER_B1; //Image frame delimiter byte 1
+		static const uint16_t IMG_FRAME_DELIMITER_B2; //Image frame delimiter byte 2
+
+		void runIO();
+
+
+		void handleImgFrame( const boost::system::error_code& ec,  std::size_t bytes_transferred);
+		void handleCMDRead( const boost::system::error_code& ec,
+			    std::size_t bytes_transferred);
+
+
+		bool cmd_response_recieved_;
+		uint8_t cmd_response_;
+		bool cmd_timed_out_;
+		void handleTimeout(const boost::system::error_code& error){
+			if (error !=boost::asio::error::operation_aborted) cmd_timed_out_=true;
+		}
 	};
 }
 
