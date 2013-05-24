@@ -134,23 +134,6 @@ void spectrolab::SpectroScan3D::runIO() {
 		}
 }
 
-
-
-void dwordFlip(uint8_t * pacbuff){
-
-	uint8_t temp;
-
-	for(int i=0;i<1024;i=i+4){
-		temp=pacbuff[i];
-		pacbuff[i]=pacbuff[i+2];
-		pacbuff[i+2]=temp;
-
-		temp=pacbuff[i+1];
-		pacbuff[i+1]=pacbuff[i+3];
-		pacbuff[i+3]=temp;
-	}
-}
-
 void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& err,  std::size_t bytes_transferred ) {
 
 	if (err && (err != boost::asio::error::eof) )
@@ -167,18 +150,17 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 		std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << "  \n";
 		line_num_=IMG_HEIGHT-1;
 	}
-	dwordFlip(img_buffer_);
 
 	if (line_num_%2==0){ //laser went from right to left
 		for(int i=range_img_.shape()[1]-1, idx=0; i>=0 ; i--, idx+=2){
-			range_img_[line_num_][i] = 0b0001111111111111 & pixels[idx+1];
-			intensity_img_[line_num_][i] = pixels[idx];
+			range_img_[line_num_][i] = 0b0001111111111111 & pixels[idx];
+			intensity_img_[line_num_][i] = 0b0000001111111111 & pixels[idx+1];
 		}
 	}
 	else{ //laser goes from left to right
 		for(size_t i=0, idx=0; i< range_img_.shape()[1]; i++, idx+=2){
-			range_img_[line_num_][i] =  0b0001111111111111 & pixels[idx+1];
-			intensity_img_[line_num_][i] = pixels[idx];
+			range_img_[line_num_][i] =  0b0001111111111111 & pixels[idx];
+			intensity_img_[line_num_][i] = 0b0000001111111111 & pixels[idx+1];
 		}
 	}
 	line_num_--;
