@@ -12,7 +12,7 @@ include_directories( include)
 
 set(CMAKE_ECLIPSE_MAKE_ARGUMENTS -j12)
 
-list(APPEND ${CMAKE_MODULE_PATH} cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_LIST_DIR}/cmake)
 
 add_definitions("-std=c++0x")
 ######################### External Libraries ###########################
@@ -24,8 +24,6 @@ include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-FIND_PACKAGE(EIGEN REQUIRED)
-include_directories(${EIGEN_INCLUDES})
 
 FIND_PACKAGE( Boost 1.48 COMPONENTS 
 					program_options filesystem thread
@@ -43,10 +41,10 @@ include_directories(${QT_INCLUDES})
 
 ######################### Project Variables ############################
 	
-set(SPECTROLAB_DEP_LIBRARIES  ${PCL_LIBRARIES}
-
-${Boost_LIBRARIES}
-${QT_LIBRARIES}
+set(SPECTROLAB_DEP_LIBRARIES 
+	 ${PCL_LIBRARIES}
+	 ${Boost_LIBRARIES}
+	 ${QT_LIBRARIES}
 )
 
 ######################## Executables / Libraries ######################
@@ -62,14 +60,15 @@ endif()
 add_library(spectrolab src/spectroscan_3d.cpp)
 target_link_libraries( spectrolab  ${Boost_LIBRARIES} )
 
-add_library(pcl_spectrolab_io  src/spectrolab_io.cpp)
+add_library(pcl_spectrolab_io  src/spectroscan_3d_io.cpp)
 target_link_libraries( pcl_spectrolab_io 
 							${SPECTROLAB_DEP_LIBRARIES} 
 							spectrolab)
 
 
-add_executable(spectroscan3d_grabframe.cpp tools/spectroscan3d_grabframe.cpp)
-target_link_libraries(spectroscan3d_grabframe.cpp ${SPECTROLAB_DEP_LIBRARIES} spectrolab pcl_spectrolab_io)
+add_subdirectory(tools)
+add_subdirectory(viewer)
+
 
 ##################### Installation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 INSTALL(TARGETS  spectrolab pcl_spectrolab_io

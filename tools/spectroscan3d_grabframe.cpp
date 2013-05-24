@@ -15,12 +15,12 @@ int main(int argc, char** argv){
   desc.add_options()
     ("help", "produce help message")
     //("input,i",po::value<std::string>(&infile)->required(), "input point cloud ")
-    //("output,o",po::value<std::string>(&ofile)->required(), "output pcd ")
+  //  ("output,o",po::value<std::string>(&ofile)->required(), "output pcd ")
        ;
 
   po::positional_options_description p;
-  p.add("input",1);
-  p.add("output",1);
+//  p.add("input",1);
+ // p.add("output",1);
 
   po::variables_map vm;
  try{
@@ -51,6 +51,7 @@ int main(int argc, char** argv){
  sleep(1);
 
  std::cout << "saving frame to " << std::endl;
+
 
  return 0;
 }

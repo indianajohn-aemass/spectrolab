@@ -2,7 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2012 The MITRE Corporation
+ *  Copyright (c) 2012  Spectrolab
  *
  *  All rights reserved.
  *
@@ -82,7 +82,7 @@ namespace spectrolab{
 
 		bool open(const boost::asio::ip::address& ipAddress);
 
-		bool isRunning();
+		bool isRunning() const;
 		bool start();
 		void stop();
 
@@ -147,6 +147,7 @@ namespace spectrolab{
 		void writeFirmware(FirmwareWriteCommands cmd, uint8_t data);
 
 
+		float getFrameRate() const {return frame_rate_;}
 
 	private:
 
@@ -158,7 +159,7 @@ namespace spectrolab{
 		void send( uint8_t* data, size_t size);
 
 		boost::signals2::signal< sig_camera_cb> frame_cb_;
-		size_t line_num_;
+		int line_num_;
 		typedef boost::multi_array_ref<uint16_t, 2> ImgType;
 		ImgType range_img_;
 		ImgType intensity_img_;
@@ -190,6 +191,10 @@ namespace spectrolab{
 		static const uint16_t IMG_FRAME_DELIMITER_1; //Image frame delimiter byte 1
 		static const uint16_t IMG_FRAME_DELIMITER_2; //Image frame delimiter byte 2
 
+
+		static const uint32_t IMG_WIDTH; //range image width
+		static const uint32_t IMG_HEIGHT; //range image height
+
 		void runIO();
 
 
@@ -204,6 +209,12 @@ namespace spectrolab{
 		void handleTimeout(const boost::system::error_code& error){
 			if (error !=boost::asio::error::operation_aborted) cmd_timed_out_=true;
 		}
+
+
+		float frame_rate_;
+		float frames_in_last_second_;
+		boost::asio::deadline_timer frame_rate_timer_;
+		void frameRateCB(); //timer callback for updating frame rate estimate
 	};
 }
 

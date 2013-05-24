@@ -17,16 +17,25 @@ const int spectrolab::SpectroScan3D::FIRMWARE_VERSION=0x7b;
 const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_1=0xba98;
 const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_2=0xfedc;
 
+
+const uint32_t spectrolab::SpectroScan3D::IMG_HEIGHT=128;
+const uint32_t spectrolab::SpectroScan3D::IMG_WIDTH=256;
+
 namespace ba=boost::asio;
 
  spectrolab::SpectroScan3D::SpectroScan3D(const boost::asio::ip::address& address) :
 		 io_service_(), io_worker_(io_service_),
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
-		 line_num_(0), running_(false),
-		 range_img_(new uint16_t[256*128], boost::extents[128][256]),
-		 intensity_img_(new uint16_t[256*128] , boost::extents[128][256])
+		 line_num_(IMG_HEIGHT-1), running_(false),
+		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
+		 range_img_(new uint16_t[IMG_WIDTH*IMG_HEIGHT], boost::extents[IMG_HEIGHT][IMG_WIDTH]),
+		 intensity_img_(new uint16_t[IMG_WIDTH*IMG_HEIGHT] , boost::extents[IMG_HEIGHT][IMG_WIDTH])
 		 {
 	 this->open(address);
+
+	 // Set an expiry time relative to now.
+	 frame_rate_timer_.expires_from_now(boost::posix_time::seconds(2));
+	 frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));
  }
 
  bool
@@ -125,6 +134,23 @@ void spectrolab::SpectroScan3D::runIO() {
 		}
 }
 
+
+
+void dwordFlip(uint8_t * pacbuff){
+
+	uint8_t temp;
+
+	for(int i=0;i<1024;i=i+4){
+		temp=pacbuff[i];
+		pacbuff[i]=pacbuff[i+2];
+		pacbuff[i+2]=temp;
+
+		temp=pacbuff[i+1];
+		pacbuff[i+1]=pacbuff[i+3];
+		pacbuff[i+3]=temp;
+	}
+}
+
 void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& err,  std::size_t bytes_transferred ) {
 
 	if (err && (err != boost::asio::error::eof) )
@@ -132,25 +158,34 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
       std::cout << "[SpectroScan3D] Error reading image frame : " << err << "\n";
       return;
     }
-
 	//check for frame delimeter
 	uint16_t  * pixels = (uint16_t*) img_buffer_;
 
+	//check for a new frame
 	if ( (pixels[0] ==  IMG_FRAME_DELIMITER_1) &&
 	     (pixels[1] ==  IMG_FRAME_DELIMITER_2)){
-		std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << " \n";
-		line_num_=0;
+		std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << "  \n";
+		line_num_=IMG_HEIGHT-1;
 	}
+	dwordFlip(img_buffer_);
 
-	for(size_t i=0, idx=0; i< range_img_.shape()[1]; i++, idx+=2){
-		range_img_[line_num_][i] = pixels[idx+1];
-		intensity_img_[line_num_][i] = pixels[idx];
+	if (line_num_%2==0){ //laser went from right to left
+		for(int i=range_img_.shape()[1]-1, idx=0; i>=0 ; i--, idx+=2){
+			range_img_[line_num_][i] = 0b0001111111111111 & pixels[idx+1];
+			intensity_img_[line_num_][i] = pixels[idx];
+		}
 	}
-
-	line_num_++;
- 	if (line_num_ >= range_img_.shape()[0]){
+	else{ //laser goes from left to right
+		for(size_t i=0, idx=0; i< range_img_.shape()[1]; i++, idx+=2){
+			range_img_[line_num_][i] =  0b0001111111111111 & pixels[idx+1];
+			intensity_img_[line_num_][i] = pixels[idx];
+		}
+	}
+	line_num_--;
+ 	if (line_num_<0){ //check to see if the frame is finished and call cb
 		if (frame_cb_.num_slots()) frame_cb_(range_img_, intensity_img_);
-		line_num_=0;
+		line_num_=IMG_HEIGHT-1;
+		frames_in_last_second_++;
 	}
 
 	img_data_socket_->async_receive(ba::buffer(img_buffer_), boost::bind(&SpectroScan3D::handleImgFrame, this, _1, _2));
@@ -183,7 +218,7 @@ void spectrolab::SpectroScan3D::send(uint8_t* data, size_t size) {
 	else timer.cancel();
 }
 
-bool spectrolab::SpectroScan3D::isRunning() {
+bool spectrolab::SpectroScan3D::isRunning() const {
 	return running_;
 }
 
@@ -207,15 +242,21 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
       std::cout << "[SpectroScan3D] Error reading cmd : " << err << "\n";
       return;
     }
-/*	//parse response
+	/*//parse response
 	std::cout << "received " ;
 	for(int i=0; i<bytes_transferred; i++){
 		std::cout << std::hex << (int) cmd_buffer_[i] << " ";
 	}
 	std::cout << " \n";
-	*/
+*/
 	cmd_response_ = cmd_buffer_[ bytes_transferred-1];
 	cmd_rx_socket_->async_receive( ba::buffer(cmd_buffer_), boost::bind(&SpectroScan3D::handleCMDRead, this, _1, _2));
 	cmd_response_recieved_ =true;
 }
 
+void spectrolab::SpectroScan3D::frameRateCB() {
+
+	frame_rate_ = this->frames_in_last_second_/2.0f;
+	frames_in_last_second_ =0;
+	frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));
+}

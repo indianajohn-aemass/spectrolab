@@ -16,7 +16,19 @@ bool range_coloring = false;
 pcl::visualization::PCLVisualizer* visualizer;
 
 void updatePointCloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
+typedef pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> CHandlerT;
+typedef pcl::visualization::PointCloudGeometryHandlerXYZ<pcl::PointXYZI> GHandlerT;
 
+typename GHandlerT::Ptr ghandler;
+ghandler.reset(new GHandlerT(cloud));
+
+typename CHandlerT::Ptr chandler;
+if (range_coloring) chandler.reset(new CHandlerT(cloud, "z"));
+else chandler.reset(new CHandlerT(cloud, "intensity"));
+
+visualizer->removeAllPointClouds(0);
+std::string name = "cloud";
+visualizer->addPointCloud<pcl::PointXYZI>(cloud, *chandler,*ghandler, name,0);
 }
 
 
