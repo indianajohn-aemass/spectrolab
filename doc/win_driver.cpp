@@ -803,6 +803,7 @@ void dwordFlip(char * pacbuff){
 		temp=pacbuff[i];
 		pacbuff[i]=pacbuff[i+2];
 		pacbuff[i+2]=temp;
+
 		temp=pacbuff[i+1];
 		pacbuff[i+1]=pacbuff[i+3];
 		pacbuff[i+3]=temp;

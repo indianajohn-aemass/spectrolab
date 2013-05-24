@@ -14,13 +14,18 @@ const int spectrolab::SpectroScan3D::CMD_TX_PORT_COMPUTER=27;
 
 const int spectrolab::SpectroScan3D::FIRMWARE_VERSION=0x7b;
 
-const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_B1=0xFEDC;
-const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_B2=0xBA98;
+const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_1=0xba98;
+const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_2=0xfedc;
 
 namespace ba=boost::asio;
 
  spectrolab::SpectroScan3D::SpectroScan3D(const boost::asio::ip::address& address) :
-		 io_service_(), io_worker_(io_service_), cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0){
+		 io_service_(), io_worker_(io_service_),
+		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
+		 line_num_(0), running_(false),
+		 range_img_(new uint16_t[256*128], boost::extents[128][256]),
+		 intensity_img_(new uint16_t[256*128] , boost::extents[128][256])
+		 {
 	 this->open(address);
  }
 
@@ -51,10 +56,6 @@ namespace ba=boost::asio;
 	std::cout << "Opened connection to scanner at  " << address << " with firmware version " << std::hex <<   (int) sys_id  << " \n";
 
 	sendFirmwareCmd(RESET);
-
-
-	//TODO setup image data callbacks
-	//ba::async_read_until(*img_data_socket_, img_buffer_, )
 	return true;
  }
 
@@ -131,7 +132,27 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
       std::cout << "[SpectroScan3D] Error reading image frame : " << err << "\n";
       return;
     }
-	std::cout << "Recieved image frame\n";
+
+	//check for frame delimeter
+	uint16_t  * pixels = (uint16_t*) img_buffer_;
+
+	if ( (pixels[0] ==  IMG_FRAME_DELIMITER_1) &&
+	     (pixels[1] ==  IMG_FRAME_DELIMITER_2)){
+		std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << " \n";
+		line_num_=0;
+	}
+
+	for(size_t i=0, idx=0; i< range_img_.shape()[1]; i++, idx+=2){
+		range_img_[line_num_][i] = pixels[idx+1];
+		intensity_img_[line_num_][i] = pixels[idx];
+	}
+
+	line_num_++;
+ 	if (line_num_ >= range_img_.shape()[0]){
+		if (frame_cb_.num_slots()) frame_cb_(range_img_, intensity_img_);
+		line_num_=0;
+	}
+
 	img_data_socket_->async_receive(ba::buffer(img_buffer_), boost::bind(&SpectroScan3D::handleImgFrame, this, _1, _2));
 }
 
@@ -168,6 +189,15 @@ bool spectrolab::SpectroScan3D::isRunning() {
 
 spectrolab::SpectroScan3D::~SpectroScan3D() {
 	if (isRunning()) stop();
+	io_service_.stop();
+	io_thread_.join();
+	delete range_img_.data();
+	delete intensity_img_.data();
+}
+
+boost::signals2::connection spectrolab::SpectroScan3D::regsiterCallBack(
+		const boost::function<sig_camera_cb>& cb) {
+	return frame_cb_.connect(cb);
 }
 
 void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& err,  std::size_t bytes_transferred ) {
@@ -177,12 +207,13 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
       std::cout << "[SpectroScan3D] Error reading cmd : " << err << "\n";
       return;
     }
-	//parse response
+/*	//parse response
 	std::cout << "received " ;
 	for(int i=0; i<bytes_transferred; i++){
 		std::cout << std::hex << (int) cmd_buffer_[i] << " ";
 	}
 	std::cout << " \n";
+	*/
 	cmd_response_ = cmd_buffer_[ bytes_transferred-1];
 	cmd_rx_socket_->async_receive( ba::buffer(cmd_buffer_), boost::bind(&SpectroScan3D::handleCMDRead, this, _1, _2));
 	cmd_response_recieved_ =true;

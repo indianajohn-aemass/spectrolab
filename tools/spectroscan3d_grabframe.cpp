@@ -39,6 +39,7 @@ int main(int argc, char** argv){
    return 0;
  }
 
+
  spectrolab::SpectroScan3D camera;
 
  std::cout << "About to start \n";
@@ -47,7 +48,9 @@ int main(int argc, char** argv){
  }
  std::cout << "Successfully started scanner \n";
 
- sleep(2);
+ sleep(1);
+
+ std::cout << "saving frame to " << std::endl;
 
  return 0;
 }

@@ -68,7 +68,7 @@ target_link_libraries( pcl_spectrolab_io
 							spectrolab)
 
 
-add_executable(spectroscan3d_grabframe.cpp tools/spectrolab_grabframe.cpp)
+add_executable(spectroscan3d_grabframe.cpp tools/spectroscan3d_grabframe.cpp)
 target_link_libraries(spectroscan3d_grabframe.cpp ${SPECTROLAB_DEP_LIBRARIES} spectrolab pcl_spectrolab_io)
 
 ##################### Installation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$

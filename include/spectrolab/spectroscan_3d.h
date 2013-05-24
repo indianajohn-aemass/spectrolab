@@ -56,11 +56,8 @@ namespace spectrolab{
 	 * Range Image in meters for the camera
 	 * NaN values are invalid points
 	 */
-	typedef boost::multi_array<float, 2> RangeImage;
-	typedef boost::shared_ptr<RangeImage> RangeImgaePtr;
-
-	typedef boost::multi_array<float, 2> IntensityImage;
-	typedef boost::shared_ptr<IntensityImage> IntensityImagePtr;
+	typedef boost::multi_array<uint16_t, 2> RangeImage;
+	typedef boost::multi_array<uint16_t, 2> IntensityImage;
 
 
 	  /** \brief Grabber for the Spectrolab Lidar Camera
@@ -81,7 +78,7 @@ namespace spectrolab{
 		~SpectroScan3D();
 
 		//define callback signature typedefs
-		typedef void (sig_camera_cb) (const RangeImgaePtr&, const IntensityImagePtr&);
+		typedef void (sig_camera_cb) (const RangeImage&, const IntensityImage&);
 
 		bool open(const boost::asio::ip::address& ipAddress);
 
@@ -149,16 +146,31 @@ namespace spectrolab{
 
 		void writeFirmware(FirmwareWriteCommands cmd, uint8_t data);
 
+
+
 	private:
 
+		/*
+		 * send
+		 * Send a command to the scanner and wait for a response
+		 * throws an exception when there is no response within 1 second
+		 */
 		void send( uint8_t* data, size_t size);
+
+		boost::signals2::signal< sig_camera_cb> frame_cb_;
+		size_t line_num_;
+		typedef boost::multi_array_ref<uint16_t, 2> ImgType;
+		ImgType range_img_;
+		ImgType intensity_img_;
+
 
 		bool running_;
 		boost::thread io_thread_;
 		typedef boost::asio::ip::udp::socket SocketT;
 
 		uint8_t img_buffer_[1024];
-		uint8_t cmd_buffer_[250];
+		uint8_t cmd_buffer_[50];
+
 
 		boost::shared_ptr<SocketT> img_data_socket_;
 		boost::shared_ptr<SocketT> cmd_tx_socket_;
@@ -175,8 +187,8 @@ namespace spectrolab{
 
 		static const int FIRMWARE_VERSION;
 
-		static const uint16_t IMG_FRAME_DELIMITER_B1; //Image frame delimiter byte 1
-		static const uint16_t IMG_FRAME_DELIMITER_B2; //Image frame delimiter byte 2
+		static const uint16_t IMG_FRAME_DELIMITER_1; //Image frame delimiter byte 1
+		static const uint16_t IMG_FRAME_DELIMITER_2; //Image frame delimiter byte 2
 
 		void runIO();
 
