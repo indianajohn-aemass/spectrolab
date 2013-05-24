@@ -38,7 +38,6 @@
 #ifndef _SPECTROLAB_SPECTROSCAN_3D_H_
 #define _SPECTROLAB_SPECTROSCAN_3D_H_
 
-#include <boost/multi_array.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -48,17 +47,55 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/asio.hpp>
 
+#include <queue>
+
 namespace spectrolab{
 
 
-	/*
-	 * RangeImage
-	 * Range Image in meters for the camera
-	 * NaN values are invalid points
+	/* Scan
+	 * A Spectroscan3D raw scan.
+	 * This class just wraps the binary integer data
 	 */
-	typedef boost::multi_array<uint16_t, 2> RangeImage;
-	typedef boost::multi_array<uint16_t, 2> IntensityImage;
+	class Scan{
+		public:
+			struct Pixel {
+				uint16_t range;
+				uint16_t amplitude;
+			};
+		private:
+			size_t rows_;
+			size_t columns_;
 
+			size_t calcAddress(uint32_t row, uint32_t column) const {
+				return row*columns_+column;
+			}
+			std::vector<Pixel> pixel_data_;
+		public:
+			Scan( uint32_t height, uint32_t width){
+				resize(height,width);
+			}
+
+			Scan():rows_(0),columns_(0){}
+
+			void resize(uint32_t height, uint32_t width){
+				rows_=height;
+				columns_=width;
+				pixel_data_.resize(height*width);
+			}
+
+			const Pixel& operator()( uint32_t row, uint32_t column) const {
+				return pixel_data_[ calcAddress(row, column)];
+			}
+			Pixel& operator()( int row, int column) {
+				return pixel_data_[ calcAddress(row, column)];
+			}
+
+			const size_t& rows() const {return rows_;};
+			const size_t& cols() const {return columns_;};
+
+			typedef boost::shared_ptr<Scan> Ptr;
+			typedef boost::shared_ptr<const Scan> ConstPtr;
+	};
 
 	  /** \brief Grabber for the Spectrolab Lidar Camera
 	   * \author Adam Stambler <adasta@gmail.com>
@@ -78,7 +115,7 @@ namespace spectrolab{
 		~SpectroScan3D();
 
 		//define callback signature typedefs
-		typedef void (sig_camera_cb) (const RangeImage&, const IntensityImage&);
+		typedef void (sig_camera_cb) ( const Scan::ConstPtr&);
 
 		bool open(const boost::asio::ip::address& ipAddress);
 
@@ -146,7 +183,6 @@ namespace spectrolab{
 
 		void writeFirmware(FirmwareWriteCommands cmd, uint8_t data);
 
-
 		float getFrameRate() const {return frame_rate_;}
 
 	private:
@@ -160,9 +196,7 @@ namespace spectrolab{
 
 		boost::signals2::signal< sig_camera_cb> frame_cb_;
 		int line_num_;
-		typedef boost::multi_array_ref<uint16_t, 2> ImgType;
-		ImgType range_img_;
-		ImgType intensity_img_;
+		Scan::Ptr current_scan_;
 
 
 		bool running_;

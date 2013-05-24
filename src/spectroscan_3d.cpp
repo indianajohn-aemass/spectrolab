@@ -28,8 +28,7 @@ namespace ba=boost::asio;
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
 		 line_num_(IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
-		 range_img_(new uint16_t[IMG_WIDTH*IMG_HEIGHT], boost::extents[IMG_HEIGHT][IMG_WIDTH]),
-		 intensity_img_(new uint16_t[IMG_WIDTH*IMG_HEIGHT] , boost::extents[IMG_HEIGHT][IMG_WIDTH])
+		 current_scan_(new Scan(128,256))
 		 {
 	 this->open(address);
 
@@ -147,25 +146,25 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 	//check for a new frame
 	if ( (pixels[0] ==  IMG_FRAME_DELIMITER_1) &&
 	     (pixels[1] ==  IMG_FRAME_DELIMITER_2)){
-		std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << "  \n";
+	//	std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << "  \n";
 		line_num_=IMG_HEIGHT-1;
 	}
 
 	if (line_num_%2==0){ //laser went from right to left
-		for(int i=range_img_.shape()[1]-1, idx=0; i>=0 ; i--, idx+=2){
-			range_img_[line_num_][i] = 0b0001111111111111 & pixels[idx];
-			intensity_img_[line_num_][i] = 0b0000001111111111 & pixels[idx+1];
+		for(int i=current_scan_->cols()-1, idx=0; i>=0 ; i--, idx+=2){
+			(*current_scan_)(line_num_, i).range =0b0001111111111111 & pixels[idx];
+			(*current_scan_)(line_num_, i).amplitude = 0b0000001111111111 & pixels[idx+1];
 		}
 	}
 	else{ //laser goes from left to right
-		for(size_t i=0, idx=0; i< range_img_.shape()[1]; i++, idx+=2){
-			range_img_[line_num_][i] =  0b0001111111111111 & pixels[idx];
-			intensity_img_[line_num_][i] = 0b0000001111111111 & pixels[idx+1];
+		for(size_t i=0, idx=0; i< current_scan_->cols(); i++, idx+=2){
+			(*current_scan_)(line_num_, i).range =0b0001111111111111 & pixels[idx];
+			(*current_scan_)(line_num_, i).amplitude = 0b0000001111111111 & pixels[idx+1];
 		}
 	}
 	line_num_--;
  	if (line_num_<0){ //check to see if the frame is finished and call cb
-		if (frame_cb_.num_slots()) frame_cb_(range_img_, intensity_img_);
+		if (frame_cb_.num_slots()) frame_cb_(current_scan_);
 		line_num_=IMG_HEIGHT-1;
 		frames_in_last_second_++;
 	}
@@ -208,8 +207,6 @@ spectrolab::SpectroScan3D::~SpectroScan3D() {
 	if (isRunning()) stop();
 	io_service_.stop();
 	io_thread_.join();
-	delete range_img_.data();
-	delete intensity_img_.data();
 }
 
 boost::signals2::connection spectrolab::SpectroScan3D::regsiterCallBack(

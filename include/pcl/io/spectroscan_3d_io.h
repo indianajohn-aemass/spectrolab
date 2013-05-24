@@ -109,10 +109,10 @@
 		boost::signals2::signal<sig_cb_xyz_cloud>* xyz_cb_;
 		boost::signals2::signal<sig_cb_xyzi_cloud>* xyzi_cb_;
 
-		void frameCB(const spectrolab::RangeImage& rimg, const spectrolab::IntensityImage& intensity_img);
+		void frameCB(const spectrolab::Scan::ConstPtr& scan );
 
 		template<typename PointT>
-		void rangeImageToCloud(const spectrolab::RangeImage& rimg, pcl::PointCloud<PointT>& cloud,
+		void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
 								double range_resolution, double x_focal, double y_focal);
 
 	protected:
