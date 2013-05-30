@@ -90,8 +90,8 @@ namespace spectrolab{
 				return pixel_data_[ calcAddress(row, column)];
 			}
 
-			const size_t& rows() const {return rows_;};
-			const size_t& cols() const {return columns_;};
+			 size_t rows() const {return rows_;};
+			 size_t cols() const {return columns_;};
 
 			typedef boost::shared_ptr<Scan> Ptr;
 			typedef boost::shared_ptr<const Scan> ConstPtr;
@@ -124,7 +124,7 @@ namespace spectrolab{
 		void stop();
 
 		boost::signals2::connection
-		regsiterCallBack(const boost::function<sig_camera_cb>& cb);
+		registerCallBack(const boost::function<sig_camera_cb>& cb);
 
 		enum FirmwareCommands{
 			//commands with no real response
@@ -194,10 +194,8 @@ namespace spectrolab{
 		 */
 		void send( uint8_t* data, size_t size);
 
-		boost::signals2::signal< sig_camera_cb> frame_cb_;
 		int line_num_;
 		Scan::Ptr current_scan_;
-
 
 		bool running_;
 		boost::thread io_thread_;
@@ -213,6 +211,13 @@ namespace spectrolab{
 
 		boost::asio::io_service io_service_;
 		boost::asio::io_service::work io_worker_;
+
+		boost::thread frame_proc_thread_;
+		boost::signals2::signal< sig_camera_cb> frame_cb_;
+		boost::mutex frame_queue_mutex_;
+		std::queue<Scan::Ptr> frame_proc_queue_; //scans to be processed by the frame_cb_
+
+		void runFrameProc();
 
 		//Communication constants
 		static const int IMG_RX_PORT_COMPUTER;

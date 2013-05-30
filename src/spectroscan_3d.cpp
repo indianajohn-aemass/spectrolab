@@ -6,6 +6,8 @@
  */
 
 #include <spectrolab/spectroscan_3d.h>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+
 
 const int spectrolab::SpectroScan3D::IMG_RX_PORT_COMPUTER=4002;
 const int spectrolab::SpectroScan3D::CMD_RX_PORT_COMPUTER=4000;
@@ -28,7 +30,7 @@ namespace ba=boost::asio;
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
 		 line_num_(IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
-		 current_scan_(new Scan(128,256))
+		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH))
 		 {
 	 this->open(address);
 
@@ -99,6 +101,9 @@ bool spectrolab::SpectroScan3D::start() {
 	sendFirmwareCmd(DATA_ACQUISITION_ON);
 
 	running_ =true;
+
+	frame_proc_thread_ = boost::thread(boost::bind(&SpectroScan3D::runFrameProc, this));
+
 	return true;
 }
 
@@ -152,21 +157,23 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 
 	if (line_num_%2==0){ //laser went from right to left
 		for(int i=current_scan_->cols()-1, idx=0; i>=0 ; i--, idx+=2){
-			(*current_scan_)(line_num_, i).range =0b0001111111111111 & pixels[idx];
-			(*current_scan_)(line_num_, i).amplitude = 0b0000001111111111 & pixels[idx+1];
+			(*current_scan_)(line_num_, i).range =   pixels[idx];
+			(*current_scan_)(line_num_, i).amplitude =   pixels[idx+1];
 		}
 	}
 	else{ //laser goes from left to right
 		for(size_t i=0, idx=0; i< current_scan_->cols(); i++, idx+=2){
-			(*current_scan_)(line_num_, i).range =0b0001111111111111 & pixels[idx];
-			(*current_scan_)(line_num_, i).amplitude = 0b0000001111111111 & pixels[idx+1];
+			(*current_scan_)(line_num_, i).range =    pixels[idx];
+			(*current_scan_)(line_num_, i).amplitude =   pixels[idx+1];
 		}
 	}
 	line_num_--;
  	if (line_num_<0){ //check to see if the frame is finished and call cb
-		if (frame_cb_.num_slots()) frame_cb_(current_scan_);
 		line_num_=IMG_HEIGHT-1;
 		frames_in_last_second_++;
+		boost::interprocess::scoped_lock<boost::mutex>(frame_queue_mutex_);
+ 		frame_proc_queue_.push(current_scan_);
+ 		current_scan_.reset(new Scan(IMG_HEIGHT,IMG_WIDTH));
 	}
 
 	img_data_socket_->async_receive(ba::buffer(img_buffer_), boost::bind(&SpectroScan3D::handleImgFrame, this, _1, _2));
@@ -209,7 +216,7 @@ spectrolab::SpectroScan3D::~SpectroScan3D() {
 	io_thread_.join();
 }
 
-boost::signals2::connection spectrolab::SpectroScan3D::regsiterCallBack(
+boost::signals2::connection spectrolab::SpectroScan3D::registerCallBack(
 		const boost::function<sig_camera_cb>& cb) {
 	return frame_cb_.connect(cb);
 }
@@ -221,16 +228,21 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
       std::cout << "[SpectroScan3D] Error reading cmd : " << err << "\n";
       return;
     }
-	/*//parse response
-	std::cout << "received " ;
-	for(int i=0; i<bytes_transferred; i++){
-		std::cout << std::hex << (int) cmd_buffer_[i] << " ";
-	}
-	std::cout << " \n";
-*/
+
 	cmd_response_ = cmd_buffer_[ bytes_transferred-1];
 	cmd_rx_socket_->async_receive( ba::buffer(cmd_buffer_), boost::bind(&SpectroScan3D::handleCMDRead, this, _1, _2));
 	cmd_response_recieved_ =true;
+}
+
+void spectrolab::SpectroScan3D::runFrameProc() {
+
+	while(running_ || !frame_proc_queue_.empty()){
+		if (frame_proc_queue_.empty()) { usleep(1); continue;}
+		Scan::Ptr frame = frame_proc_queue_.front();
+		frame_cb_( frame);
+		boost::interprocess::scoped_lock<boost::mutex> lock(frame_queue_mutex_);
+		frame_proc_queue_.pop();
+	}
 }
 
 void spectrolab::SpectroScan3D::frameRateCB() {

@@ -21,6 +21,7 @@ inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
 	cloud.height = scan.rows();
 	cloud.sensor_origin_ << 0,0,0,1;
 	cloud.sensor_orientation_ = Eigen::Quaternionf::Identity();
+	cloud.is_dense=true;
 
 	float mx = scan.cols()/2.0f;
 	float my = scan.rows()/2.0f;
@@ -46,13 +47,12 @@ inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
 
 pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) :
 		camera_(boost::asio::ip::address::from_string(ipaddress)){
-	camera_.regsiterCallBack( boost::bind(&Spectroscan3DGrabber::frameCB, this, _1) );
+	camera_.registerCallBack( boost::bind(&Spectroscan3DGrabber::frameCB, this, _1) );
 	xyzi_cb_ = this->createSignal<sig_cb_xyzi_cloud>();
 	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
 	xyz_cb_ = this->createSignal<sig_cb_xyz_cloud>();
 
-	std::cout << "X focal length "<< settings_.x_focal_length << " y focal " << settings_.y_focal_length << " \n";
-}
+ }
 
 
 void
