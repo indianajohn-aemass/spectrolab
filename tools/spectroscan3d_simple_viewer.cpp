@@ -5,6 +5,7 @@
 
 
 #include <pcl/io/spectroscan_3d_io.h>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/point_cloud_handlers.h>
@@ -13,9 +14,22 @@ namespace po=boost::program_options;
 
 bool range_coloring = false;
 
-pcl::visualization::PCLVisualizer* visualizer;
+class SimpleViewer{
+private:
+	pcl::visualization::PCLVisualizer* visualizer;
+	boost::mutex cloud_mutex_;
+	pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
+	bool recieved_first_;
 
-void updatePointCloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
+public:
+
+	void run();
+	void cloudCB(const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
+	void updatePointCloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud );
+
+};
+
+void SimpleViewer::updatePointCloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
 typedef pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> CHandlerT;
 typedef pcl::visualization::PointCloudGeometryHandlerXYZ<pcl::PointXYZI> GHandlerT;
 
@@ -28,7 +42,37 @@ else chandler.reset(new CHandlerT(cloud, "intensity"));
 
 visualizer->removeAllPointClouds(0);
 std::string name = "cloud";
+if (!recieved_first_){
+	recieved_first_=true;
+    return;
+}
 visualizer->addPointCloud<pcl::PointXYZI>(cloud, *chandler,*ghandler, name,0);
+visualizer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "cloud",0);
+visualizer->spinOnce(1, true);
+}
+
+void SimpleViewer::run() {
+
+	visualizer= new pcl::visualization::PCLVisualizer("Spectroscan 3D Viewer");
+	visualizer->addCoordinateSystem(0.5);
+    visualizer->setCameraPosition (0, 0, -2,
+    							   0, 0, 1,
+    							   0,-1,0);
+
+	while(!visualizer->wasStopped()){
+		if (cloud_!=NULL){
+			boost::interprocess::scoped_lock<boost::mutex> lock( cloud_mutex_);
+			updatePointCloud(cloud_);
+			cloud_.reset();
+		}
+		if (recieved_first_) visualizer->spinOnce(30,true);
+	}
+}
+
+void SimpleViewer::cloudCB(
+	const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud) {
+	boost::interprocess::scoped_lock<boost::mutex> lock( cloud_mutex_);
+	cloud_ = cloud;
 }
 
 
@@ -62,7 +106,10 @@ int main(int argc, char** argv){
 
  pcl::Spectroscan3DGrabber camera;
 
- camera.registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(  updatePointCloud  );
+ SimpleViewer viewer;
+
+ camera.registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(
+		 boost::bind(&SimpleViewer::cloudCB, &viewer, _1));
  camera.start();
 
  if (!camera.isRunning()){
@@ -70,8 +117,8 @@ int main(int argc, char** argv){
  }
  std::cout << "Successfully started scanner \n";
 
- visualizer = new pcl::visualization::PCLVisualizer();
- visualizer->spin();
+viewer.run();
 
 return 0;
 }
+
