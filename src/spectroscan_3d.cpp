@@ -31,7 +31,7 @@ namespace ba=boost::asio;
 		 line_num_(IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
 		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH)),
-		 frame_buffer_size_(3)
+		 frame_buffer_size_(2)
 		 {
 	 this->open(address);
 
@@ -253,11 +253,13 @@ void spectrolab::SpectroScan3D::runFrameProc() {
 			frame_available_condition_.wait( lock );
 		}
         // Process data
-
-		Scan::Ptr frame = frame_proc_queue_.front();
+		Scan::Ptr frame;
+		{ //get data
+			boost::interprocess::scoped_lock<boost::mutex> lock(frame_queue_mutex_);
+			frame =frame_proc_queue_.front();
+			frame_proc_queue_.pop();
+		}
 		frame_cb_( frame);
-		boost::interprocess::scoped_lock<boost::mutex> lock(frame_queue_mutex_);
-		frame_proc_queue_.pop();
 	}
 }
 
