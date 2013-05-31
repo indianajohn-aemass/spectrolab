@@ -30,4 +30,4 @@ sudo ./spectroscan3d_simple_viewer
 
 To test the scanner, you can grab a single frame using 
 
-sudo ./spectroscan3d_grabframe frame.png
+sudo ./spectroscan3d_grabpcd  frame
