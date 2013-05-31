@@ -86,7 +86,7 @@ namespace spectrolab{
 			const Pixel& operator()( uint32_t row, uint32_t column) const {
 				return pixel_data_[ calcAddress(row, column)];
 			}
-			Pixel& operator()( int row, int column) {
+			Pixel& operator()( uint32_t row, uint32_t column) {
 				return pixel_data_[ calcAddress(row, column)];
 			}
 

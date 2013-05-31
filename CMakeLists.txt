@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(spectrolab)
 	
@@ -10,16 +9,9 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 
 include_directories( include)
 
-set(CMAKE_ECLIPSE_MAKE_ARGUMENTS -j12)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_LIST_DIR}/cmake)
-
-add_definitions("-std=c++0x")
 ######################### External Libraries ###########################
 	
-find_package(PCL 1.6 REQUIRED COMPONENTS 
-			io octree filters search kdtree registration
-			segmentation features surface visualization)
+find_package(PCL 1.6 REQUIRED COMPONENTS  io filters visualization)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})

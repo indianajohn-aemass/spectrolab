@@ -3,6 +3,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <pcl/point_types.h>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/spectroscan_3d_io.h>
@@ -63,7 +64,7 @@ int main(int argc, char** argv){
  boost::signals2::connection c= grabber.registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(  savecloud  );
  grabber.start();
 
- while(1){sleep(1);}
+ while(1){	boost::this_thread::sleep(boost::posix_time::seconds(1));}
 
  return 0;
 }

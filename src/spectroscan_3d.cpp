@@ -7,7 +7,7 @@
 
 #include <spectrolab/spectroscan_3d.h>
 #include <boost/interprocess/sync/scoped_lock.hpp>
-
+#include <iostream>
 
 const int spectrolab::SpectroScan3D::IMG_RX_PORT_COMPUTER=4002;
 const int spectrolab::SpectroScan3D::CMD_RX_PORT_COMPUTER=4000;
@@ -197,7 +197,7 @@ void spectrolab::SpectroScan3D::send(uint8_t* data, size_t size) {
 	timer.expires_from_now( boost::posix_time::seconds( 1) );
 	timer.async_wait( boost::bind(&SpectroScan3D::handleTimeout, this,_1) );
 	while(!cmd_response_recieved_  && !cmd_timed_out_){
-		usleep(1);
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 	}
 	if (cmd_timed_out_){
 		cmd_timed_out_ = false;
@@ -237,7 +237,10 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
 void spectrolab::SpectroScan3D::runFrameProc() {
 
 	while(running_ || !frame_proc_queue_.empty()){
-		if (frame_proc_queue_.empty()) { usleep(1); continue;}
+		if (frame_proc_queue_.empty()) { 
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+			continue;
+		}
 		Scan::Ptr frame = frame_proc_queue_.front();
 		frame_cb_( frame);
 		boost::interprocess::scoped_lock<boost::mutex> lock(frame_queue_mutex_);
