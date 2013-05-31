@@ -30,7 +30,8 @@ namespace ba=boost::asio;
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
 		 line_num_(IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
-		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH))
+		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH)),
+		 frame_buffer_size_(3)
 		 {
 	 this->open(address);
 
@@ -174,7 +175,12 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 		frames_in_last_second_++;
 
 		boost::interprocess::scoped_lock<boost::mutex>(frame_queue_mutex_);
- 		frame_proc_queue_.push(current_scan_);
+		if (frame_buffer_size_ <0)		frame_proc_queue_.push(current_scan_);
+		else {
+			while (frame_buffer_size_ < frame_proc_queue_.size()) frame_proc_queue_.pop();
+			frame_proc_queue_.push(current_scan_);
+		}
+
  		current_scan_.reset(new Scan(IMG_HEIGHT,IMG_WIDTH));
  		frame_available_condition_.notify_one();
 	}

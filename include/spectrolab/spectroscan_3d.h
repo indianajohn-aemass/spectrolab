@@ -125,9 +125,20 @@ namespace spectrolab{
 		typedef void (sig_camera_cb) ( const Scan::ConstPtr&);
 
 
-
+		/*
+		 * Checks to see if the driver is connected to the
+		 * camera and running.
+		 */
 		bool isRunning() const;
+
+		/*
+		 * Start streaming data.
+		 */
 		bool start();
+
+		/*
+		 * stop streaming data and turn off laser
+		 */
 		void stop();
 
 		/* registerCallBack
@@ -199,6 +210,15 @@ namespace spectrolab{
 		 */
 		float getFrameRate() const {return frame_rate_;}
 
+
+		/*
+		 * Sets the maximum number of frames that are kept
+		 * in the buffer waiting to be processed.
+		 * if size <0, frame buffer is unlimited in size.
+		 * default =3 frames
+		 */
+		void setFrameBufferSize(int size){frame_buffer_size_=size;}
+
 	private:
 
 		/*
@@ -239,6 +259,7 @@ namespace spectrolab{
 		boost::condition_variable frame_available_condition_;
 
 		std::queue<Scan::Ptr> frame_proc_queue_; //scans to be processed by the frame_cb_
+		int frame_buffer_size_;
 
 		void runFrameProc();
 
