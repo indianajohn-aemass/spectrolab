@@ -95,6 +95,9 @@ namespace spectrolab{
 
 			typedef boost::shared_ptr<Scan> Ptr;
 			typedef boost::shared_ptr<const Scan> ConstPtr;
+			const Pixel& operator[](size_t idx) const {return pixel_data_[idx];}
+			Pixel& operator[](size_t idx) {return pixel_data_[idx];}
+
 	};
 
 	  /** \brief Grabber for the Spectrolab Lidar Camera
@@ -215,6 +218,8 @@ namespace spectrolab{
 		boost::thread frame_proc_thread_;
 		boost::signals2::signal< sig_camera_cb> frame_cb_;
 		boost::mutex frame_queue_mutex_;
+		boost::condition_variable frame_available_condition_;
+
 		std::queue<Scan::Ptr> frame_proc_queue_; //scans to be processed by the frame_cb_
 
 		void runFrameProc();

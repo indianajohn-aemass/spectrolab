@@ -30,7 +30,7 @@ inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
 
 	for(size_t r=0, idx=0; r< scan.rows(); r++){
 		for(size_t c=0; c< scan.cols(); c++,idx++){
-			double range = (float) scan(r,c).range ;
+			double range = (float) scan[idx].range; //scan(r,c).range ;
 			range*=range_resolution;
 			cloud[idx].z= range;
 			float dx = c-mx;
@@ -86,7 +86,7 @@ void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan) 
 
 		for(size_t r=0, idx=0; r< scan->rows(); r++){
 			for(size_t c=0; c< scan->cols(); c++,idx++){
-				double amp = ((float) (*scan)(r,c).amplitude);
+				float amp = ((float) (*scan)[idx].amplitude);
 				(*xyzi)[idx].intensity= amp/1024.0f;
 			}
 		}

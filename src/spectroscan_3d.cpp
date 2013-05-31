@@ -175,6 +175,7 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 		boost::interprocess::scoped_lock<boost::mutex>(frame_queue_mutex_);
  		frame_proc_queue_.push(current_scan_);
  		current_scan_.reset(new Scan(IMG_HEIGHT,IMG_WIDTH));
+ 		frame_available_condition_.notify_one();
 	}
 
 	img_data_socket_->async_receive(ba::buffer(img_buffer_), boost::bind(&SpectroScan3D::handleImgFrame, this, _1, _2));
@@ -239,10 +240,13 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
 void spectrolab::SpectroScan3D::runFrameProc() {
 
 	while(running_ || !frame_proc_queue_.empty()){
-		if (frame_proc_queue_.empty()) { 
-			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-			continue;
+
+		while(frame_proc_queue_.empty()){
+			boost::unique_lock<boost::mutex> lock( frame_queue_mutex_);
+			frame_available_condition_.wait( lock );
 		}
+        // Process data
+
 		Scan::Ptr frame = frame_proc_queue_.front();
 		frame_cb_( frame);
 		boost::interprocess::scoped_lock<boost::mutex> lock(frame_queue_mutex_);
@@ -251,7 +255,6 @@ void spectrolab::SpectroScan3D::runFrameProc() {
 }
 
 void spectrolab::SpectroScan3D::frameRateCB() {
-
 	frame_rate_ = this->frames_in_last_second_/2.0f;
 	frames_in_last_second_ =0;
 	frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));

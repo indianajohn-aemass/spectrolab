@@ -70,7 +70,7 @@ visualizer->setCameraPose (0, 0, -2,
 			updatePointCloud(cloud_);
 			cloud_.reset();
 		}
-		if (recieved_first_) visualizer->spinOnce(30,true);
+		if (recieved_first_) visualizer->spinOnce(30,false);
 	}
 }
 
