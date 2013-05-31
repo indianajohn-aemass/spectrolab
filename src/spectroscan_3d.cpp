@@ -61,11 +61,12 @@ namespace ba=boost::asio;
 
 	io_thread_ = boost::thread( boost::bind(&SpectroScan3D::runIO, this));
 
+	sendFirmwareCmd(RESET);
 	uint8_t sys_id;
 	readFirmware(SYSTEM_ID_READ, sys_id);
 	std::cout << "Opened connection to scanner at  " << address << " with firmware version " << std::hex <<   (int) sys_id  << " \n";
 
-	sendFirmwareCmd(RESET);
+
 	return true;
  }
 
@@ -194,7 +195,7 @@ void spectrolab::SpectroScan3D::send(uint8_t* data, size_t size) {
 	cmd_timed_out_ =false;
 	cmd_tx_socket_->send(ba::buffer(data, size));
 	boost::asio::deadline_timer timer( io_service_ );
-	timer.expires_from_now( boost::posix_time::seconds( 1) );
+	timer.expires_from_now( boost::posix_time::seconds( 1.5) );
 	timer.async_wait( boost::bind(&SpectroScan3D::handleTimeout, this,_1) );
 	while(!cmd_response_recieved_  && !cmd_timed_out_){
 		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
@@ -204,6 +205,7 @@ void spectrolab::SpectroScan3D::send(uint8_t* data, size_t size) {
 		throw TimeoutException();
 	}
 	else timer.cancel();
+
 }
 
 bool spectrolab::SpectroScan3D::isRunning() const {
