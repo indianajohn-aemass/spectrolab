@@ -172,6 +172,7 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
  	if (line_num_<0){ //check to see if the frame is finished and call cb
 		line_num_=IMG_HEIGHT-1;
 		frames_in_last_second_++;
+
 		boost::interprocess::scoped_lock<boost::mutex>(frame_queue_mutex_);
  		frame_proc_queue_.push(current_scan_);
  		current_scan_.reset(new Scan(IMG_HEIGHT,IMG_WIDTH));

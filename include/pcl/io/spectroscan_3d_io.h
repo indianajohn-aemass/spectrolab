@@ -47,13 +47,17 @@
 	struct PointXYZI;
 	template <typename T> class PointCloud;
 
+	/*
+	  /** \brief Grabber for the Spectrolab Lidar Camera
+	   * \author Adam Stambler <adasta@gmail.com>
+	   * \ingroup io
+	 */
+
 	class PCL_EXPORTS Spectroscan3DGrabber : public Grabber{
 	public:
 		Spectroscan3DGrabber(std::string ipaddress = "192.168.0.27");
 
 		virtual ~Spectroscan3DGrabber() throw(){}
-
-		bool open(std::string scanner_ip = "192.168.0.27");
 
 		//define callback signature typedefs
 		typedef void (sig_cb_xyz_cloud) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZ> >&);

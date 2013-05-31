@@ -108,15 +108,22 @@ int main(int argc, char** argv){
    return 0;
  }
 
- pcl::Spectroscan3DGrabber camera;
-
+ pcl::Spectroscan3DGrabber* camera;
+ try{
+	 camera = new pcl::Spectroscan3DGrabber;
+ }
+ catch (std::exception& e){
+	 std::cout << "Failed to open connection to camera\n";
+	 std::cout << e.what() << "\n";
+	 return -1;
+ }
  SimpleViewer viewer;
 
- camera.registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(
+ camera->registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(
 		 boost::bind(&SimpleViewer::cloudCB, &viewer, _1));
- camera.start();
+ camera->start();
 
- if (!camera.isRunning()){
+ if (!camera->isRunning()){
 	 std::cout << "Failed to start scanner \n";
  }
  std::cout << "Successfully started scanner \n";

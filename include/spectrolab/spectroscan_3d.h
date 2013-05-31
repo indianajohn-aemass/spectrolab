@@ -95,18 +95,22 @@ namespace spectrolab{
 
 			typedef boost::shared_ptr<Scan> Ptr;
 			typedef boost::shared_ptr<const Scan> ConstPtr;
+
+			/* operator[]
+			 * linear access to the raw pixel data.
+			 * Use this function to avoid recomputing the data address every time you access by (r,c)
+			 */
 			const Pixel& operator[](size_t idx) const {return pixel_data_[idx];}
 			Pixel& operator[](size_t idx) {return pixel_data_[idx];}
 
 	};
 
-	  /** \brief Grabber for the Spectrolab Lidar Camera
+	  /** \brief Driver for the Spectrolab Lidar Camera
 	   * \author Adam Stambler <adasta@gmail.com>
-	   * \ingroup io
 	   *
-	   *
-	   *  command read and writes are synchronous
-	   *  image data is asynchronous
+	   *  Note:
+	   *  firmware command reads and writes are synchronous.  Th
+	   *  Receiving data is asynchronous.
 	   *
 	   */
 	class SpectroScan3D{
@@ -120,12 +124,15 @@ namespace spectrolab{
 		//define callback signature typedefs
 		typedef void (sig_camera_cb) ( const Scan::ConstPtr&);
 
-		bool open(const boost::asio::ip::address& ipAddress);
+
 
 		bool isRunning() const;
 		bool start();
 		void stop();
 
+		/* registerCallBack
+		 * register a scan frame received callback
+		 */
 		boost::signals2::connection
 		registerCallBack(const boost::function<sig_camera_cb>& cb);
 
@@ -186,9 +193,20 @@ namespace spectrolab{
 
 		void writeFirmware(FirmwareWriteCommands cmd, uint8_t data);
 
+
+		/*	getFrameRate
+		 *  get the current estimate of the camera's frame rate
+		 */
 		float getFrameRate() const {return frame_rate_;}
 
 	private:
+
+		/*
+		 * open
+		 * Open up a connection to the lidar camera at given ip address
+		 */
+		bool open(const boost::asio::ip::address& ipAddress);
+
 
 		/*
 		 * send

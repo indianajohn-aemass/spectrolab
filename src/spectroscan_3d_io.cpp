@@ -65,11 +65,6 @@ pcl::Spectroscan3DGrabber::stop(){
 	camera_.stop();
 }
 
-bool
-pcl::Spectroscan3DGrabber::open(std::string scanner_ip){
-	return camera_.open(boost::asio::ip::address::from_string(scanner_ip));
-}
-
 void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan) {
 	if (!img_cb_->empty()){
 		(*img_cb_)(scan);
