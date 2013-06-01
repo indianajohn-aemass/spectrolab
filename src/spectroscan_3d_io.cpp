@@ -47,7 +47,7 @@ inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
 
 pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) :
 		camera_(boost::asio::ip::address::from_string(ipaddress)){
-	camera_.registerCallBack( boost::bind(&Spectroscan3DGrabber::frameCB, this, _1) );
+	camera_.registerCallBack( boost::bind(&Spectroscan3DGrabber::frameCB, this, _1, _2) );
 	xyzi_cb_ = this->createSignal<sig_cb_xyzi_cloud>();
 	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
 	xyz_cb_ = this->createSignal<sig_cb_xyz_cloud>();
@@ -65,14 +65,13 @@ pcl::Spectroscan3DGrabber::stop(){
 	camera_.stop();
 }
 
-void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan) {
+void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan, time_t scan_time) {
 	if (!img_cb_->empty()){
-		(*img_cb_)(scan);
+		(*img_cb_)(scan, scan_time);
 	}
 	if (!xyz_cb_->empty()){
 		PointCloud<pcl::PointXYZ>::Ptr xyz(new pcl::PointCloud<pcl::PointXYZ>);
 		rangeImageToCloud(*scan, *xyz, settings_.range_resolution, settings_.x_focal_length, settings_.y_focal_length);
-
 		(*xyz_cb_)(xyz);
 	}
 	if (!xyzi_cb_->empty()){

@@ -46,6 +46,7 @@
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/asio.hpp>
+#include <boost/date_time.hpp>
 
 #include <queue>
 
@@ -103,6 +104,8 @@ namespace spectrolab{
 			const Pixel& operator[](size_t idx) const {return pixel_data_[idx];}
 			Pixel& operator[](size_t idx) {return pixel_data_[idx];}
 
+			void save( std::string fname) const;
+			bool load( std::string fname);
 	};
 
 	  /** \brief Driver for the Spectrolab Lidar Camera
@@ -122,7 +125,7 @@ namespace spectrolab{
 		~SpectroScan3D();
 
 		//define callback signature typedefs
-		typedef void (sig_camera_cb) ( const Scan::ConstPtr&);
+		typedef void (sig_camera_cb) ( const Scan::ConstPtr&, time_t);
 
 
 		/*
@@ -143,6 +146,7 @@ namespace spectrolab{
 
 		/* registerCallBack
 		 * register a scan frame received callback
+		 * driver expects callback to exit quickly.
 		 */
 		boost::signals2::connection
 		registerCallBack(const boost::function<sig_camera_cb>& cb);
@@ -210,16 +214,9 @@ namespace spectrolab{
 		 */
 		float getFrameRate() const {return frame_rate_;}
 
-
-		/*
-		 * Sets the maximum number of frames that are kept
-		 * in the buffer waiting to be processed.
-		 * if size <0, frame buffer is unlimited in size.
-		 * default =3 frames
-		 */
-		void setFrameBufferSize(int size){frame_buffer_size_=size;}
-
 	private:
+
+		boost::signals2::signal<sig_camera_cb> frame_cb_;
 
 		/*
 		 * open
@@ -242,9 +239,14 @@ namespace spectrolab{
 		boost::thread io_thread_;
 		typedef boost::asio::ip::udp::socket SocketT;
 
-		uint8_t img_buffer_[1024];
+		std::vector<uint8_t> img_buffer_;
 		uint8_t cmd_buffer_[50];
 
+		boost::mutex line_queue_mutex_;
+		boost::condition_variable line_queue_condition_;
+		boost::thread proc_thread_;
+		std::queue< std::vector<uint8_t> > line_queue_;
+		void processLines();
 
 		boost::shared_ptr<SocketT> img_data_socket_;
 		boost::shared_ptr<SocketT> cmd_tx_socket_;
@@ -252,14 +254,6 @@ namespace spectrolab{
 
 		boost::asio::io_service io_service_;
 		boost::asio::io_service::work io_worker_;
-
-		boost::thread frame_proc_thread_;
-		boost::signals2::signal< sig_camera_cb> frame_cb_;
-		boost::mutex frame_queue_mutex_;
-		boost::condition_variable frame_available_condition_;
-
-		std::queue<Scan::Ptr> frame_proc_queue_; //scans to be processed by the frame_cb_
-		int frame_buffer_size_;
 
 		void runFrameProc();
 
@@ -292,7 +286,6 @@ namespace spectrolab{
 		void handleTimeout(const boost::system::error_code& error){
 			if (error !=boost::asio::error::operation_aborted) cmd_timed_out_=true;
 		}
-
 
 		float frame_rate_;
 		float frames_in_last_second_;
