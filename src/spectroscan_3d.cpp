@@ -35,7 +35,7 @@ namespace ba=boost::asio;
 		 {
 	 this->open(address);
 
-	 // Set an expiry time relative to now.
+	 // Set an expiration time relative to now.
 	 frame_rate_timer_.expires_from_now(boost::posix_time::seconds(2));
 	 frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));
  }

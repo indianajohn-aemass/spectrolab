@@ -25,12 +25,7 @@ FIND_PACKAGE( Boost 1.48 COMPONENTS
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 include_directories( include)
 
-SET( QT_USE_QTXML TRUE )
-SET(QT_USE_QTOPENGL TRUE)
-ADD_DEFINITIONS(${QT_DEFINITIONS})
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE (${QT_USE_FILE})
-include_directories(${QT_INCLUDES})
+
 
 ######################### Project Variables ############################
 	

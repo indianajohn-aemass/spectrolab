@@ -96,7 +96,7 @@ void pcl::Spectroscan3DGrabber::signalsChanged() {
 	xyz_cb_ = this->find_signal<sig_cb_xyz_cloud>();
 }
 
-pcl::Spectroscan3DGrabber::Settings::Settings(): range_resolution(0.00625),
+pcl::SpectroscanSettings::SpectroscanSettings(): range_resolution(0.00625),
 			x_focal_length( 1.0f/tan(30.0/180.0f*M_PI)), y_focal_length(1.0f/tan(15.0/180.0f*M_PI)),
 			cx(256.0f/2.0f), cy(64) {
 

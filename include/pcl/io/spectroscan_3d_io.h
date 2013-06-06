@@ -47,6 +47,17 @@
 	struct PointXYZI;
 	template <typename T> class PointCloud;
 
+	struct SpectroscanSettings{
+		double range_resolution;
+		double x_focal_length;
+		double y_focal_length;
+		double cx;
+		double cy;
+		SpectroscanSettings();
+		bool load(std::string fname);
+		void save(std::string ofname);
+	};
+
 	/*
 	  /** \brief Grabber for the Spectrolab Lidar Camera
 	   * \author Adam Stambler <adasta@gmail.com>
@@ -91,23 +102,13 @@
 		virtual float
 		getFramesPerSecond () const{return camera_.getFrameRate();}
 
-		struct Settings{
-			double range_resolution;
-			double x_focal_length;
-			double y_focal_length;
-			double cx;
-			double cy;
-			Settings();
-			bool load(std::string fname);
-			void save(std::string ofname);
-		};
 
-		void setSettings( const Settings settings);
+		void setSettings( const SpectroscanSettings settings);
 
 
 	private:
 		spectrolab::SpectroScan3D camera_;
-		Settings settings_;
+		SpectroscanSettings settings_;
 
 		boost::signals2::signal<spectrolab::SpectroScan3D::sig_camera_cb>* img_cb_;
 		boost::signals2::signal<sig_cb_xyz_cloud>* xyz_cb_;
@@ -122,6 +123,11 @@
 	protected:
 	      virtual void
 	      signalsChanged ();
+	};
+
+
+	class Spectroscan3DFrameMovieGrabber : public Grabber{
+
 	};
 }
 
