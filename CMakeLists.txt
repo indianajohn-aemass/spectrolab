@@ -48,7 +48,8 @@ endif()
 add_library(spectrolab src/spectroscan_3d.cpp)
 target_link_libraries( spectrolab  ${Boost_LIBRARIES} )
 
-add_library(pcl_spectrolab_io  src/spectroscan_3d_io.cpp)
+add_library(pcl_spectrolab_io  src/spectroscan_3d_io.cpp
+							   src/movie_grabber.cpp)
 target_link_libraries( pcl_spectrolab_io 
 							${SPECTROLAB_DEP_LIBRARIES} 
 							spectrolab)

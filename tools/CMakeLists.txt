@@ -13,4 +13,8 @@ target_link_libraries(spectroscan3d_grabframe ${SPECTROLAB_DEP_LIBRARIES}
 add_executable(spectroscan3d_frame_to_png spectroscan3d_frame_to_png.cpp)
 target_link_libraries(spectroscan3d_frame_to_png ${SPECTROLAB_DEP_LIBRARIES} 
 													spectrolab pcl_spectrolab_io)
-																					
+						
+add_executable(simple_movie_player simple_movie_player.cpp)
+target_link_libraries(simple_movie_player ${SPECTROLAB_DEP_LIBRARIES} 
+										 spectrolab pcl_spectrolab_io)
+															
