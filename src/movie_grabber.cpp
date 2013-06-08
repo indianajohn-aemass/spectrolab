@@ -16,6 +16,7 @@ pcl::MovieGrabber::MovieGrabber(const boost::filesystem::path movie_folder, std:
 	xyz_cb_ = this->createSignal<sig_xyz_cb>();
 	xyzi_cb_ = this->createSignal<sig_xyzi_cb>();
 	xyzrgb_cb_ = this->createSignal<sig_xyzrgb_cb>();
+	frame_num_cb_ = this->createSignal<sig_frame_num_cb>();
 
 	boost::filesystem::directory_iterator diter(movie_folder), dend;
 	for(;diter!= dend; diter++){
@@ -28,13 +29,13 @@ pcl::MovieGrabber::MovieGrabber(const boost::filesystem::path movie_folder, std:
 
 void pcl::MovieGrabber::start() {
 	if (running_) return;
-
-
 	running_=true;
 	io_thread_ = boost::thread( boost::bind(&MovieGrabber::runIO, this) );
 }
 
 void pcl::MovieGrabber::stop() {
+	running_=false;
+	this->io_thread_.join();
 }
 
 bool pcl::MovieGrabber::isRunning() const {
@@ -71,6 +72,7 @@ std::string pcl::MovieGrabber::getMovieDir() {
 void pcl::MovieGrabber::runIO() {
 	while( (frame_idx_< file_names_.size()) && running_){
 		handleFile(file_names_[frame_idx_]);
+		(*frame_num_cb_)(frame_idx_, file_names_.size());
 		boost::this_thread::sleep(boost::posix_time::milliseconds(sleep_ms_));
 		boost::unique_lock<boost::mutex> lock(frame_mutex_);
 		frame_idx_++;

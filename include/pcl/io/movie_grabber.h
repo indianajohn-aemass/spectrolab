@@ -69,12 +69,14 @@ public:
 	typedef void (sig_xyz_cb) ( const PointCloud<PointXYZ>::ConstPtr&);
 	typedef void (sig_xyzi_cb) ( const PointCloud<PointXYZI>::ConstPtr&);
 	typedef void (sig_xyzrgb_cb) ( const PointCloud<PointXYZRGB>::ConstPtr&);
+	typedef void (sig_frame_num_cb) (  size_t  frame_num,  size_t total_frames);
 
 private:
 	boost::signals2::signal<sig_pointcloud_cb>* cloud_cb_;
 	boost::signals2::signal<sig_xyz_cb>* xyz_cb_;
 	boost::signals2::signal<sig_xyzi_cb>* xyzi_cb_;
 	boost::signals2::signal<sig_xyzrgb_cb>* xyzrgb_cb_;
+	boost::signals2::signal<sig_frame_num_cb>* frame_num_cb_;
 
     bool running_;
 
