@@ -29,6 +29,9 @@ public:
 	MovieGrabber( const boost::filesystem::path move_folder, std::string ext=".pcd");
 
 	virtual ~MovieGrabber() throw(){}
+
+	typedef boost::shared_ptr<MovieGrabber> Ptr;
+
 	/** \brief For devices that are streaming, the streams are started by calling this method.
       *        Trigger-based devices, just trigger the device once for each call of start.
       */
@@ -56,6 +59,8 @@ public:
     /** \brief returns fps. 0 if trigger based. */
     virtual float
     getFramesPerSecond () const;
+
+    void playOneFrame();
 
     void setFramesPerSecond( float frameframe);
 

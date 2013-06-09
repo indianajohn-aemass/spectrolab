@@ -18,12 +18,22 @@ pcl::MovieGrabber::MovieGrabber(const boost::filesystem::path movie_folder, std:
 	xyzrgb_cb_ = this->createSignal<sig_xyzrgb_cb>();
 	frame_num_cb_ = this->createSignal<sig_frame_num_cb>();
 
-	boost::filesystem::directory_iterator diter(movie_folder), dend;
-	for(;diter!= dend; diter++){
-		if (diter->path().extension()==ext)
-			file_names_.push_back(diter->path().string());
+	if (!boost::filesystem::exists(movie_folder)){
+		pcl::console::print_error("[MovieGrabber] There is no file/movie folder at %s", movie_folder.c_str());
+		return;
 	}
-	std::sort(file_names_.begin(), file_names_.end());
+
+	if (movie_folder.extension() == ext){
+		file_names_.push_back(movie_folder.string());
+	}
+	else{
+		boost::filesystem::directory_iterator diter(movie_folder), dend;
+		for(;diter!= dend; diter++){
+			if (diter->path().extension()==ext)
+				file_names_.push_back(diter->path().string());
+		}
+		std::sort(file_names_.begin(), file_names_.end());
+	}
 }
 
 
@@ -88,6 +98,11 @@ void pcl::MovieGrabber::handleFile(std::string& file) {
 		return;
 	}
 	handleCloud(cloud, origin, rot);
+}
+
+void pcl::MovieGrabber::playOneFrame() {
+	handleFile(file_names_[frame_idx_]);
+	frame_idx_++;
 }
 
 void pcl::MovieGrabber::handleCloud(

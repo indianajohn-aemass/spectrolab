@@ -1,6 +1,6 @@
 message("Making Spectrolab Viewer")
 
-
+set(CMAKE_BUILD_TYPE "Debug")
 SET( QT_USE_QTXML TRUE )
 SET(QT_USE_QTOPENGL TRUE)
 ADD_DEFINITIONS(${QT_DEFINITIONS})
@@ -18,13 +18,14 @@ SET(viewer_SOURCES src/main.cpp
 				   src/cloud_player_widget.cpp
 				   src/viewer_application.cpp)
 
-SET(viewer_HEADERS include/pcl/visualization/cloud_player_widget.h)
-
+SET(viewer_HEADERS include/pcl/visualization/cloud_player_widget.h
+				   src/viewer_application.h
+				   )
 
 QT4_WRAP_UI(viewer_FORM_HEADERS  ui/cloud_player.ui 
-								  ui/viewer_main.ui)
+								 ui/viewer_main.ui)
 QT4_ADD_RESOURCES(viewer_RESOURCES_RCC  
-								  resources/viewer.qrc)
+								   resources/viewer.qrc)
 
 
 QT4_WRAP_CPP(viewer_HEADERS_MOC ${viewer_HEADERS})
@@ -33,7 +34,8 @@ QT4_WRAP_CPP(viewer_HEADERS_MOC ${viewer_HEADERS})
 ADD_EXECUTABLE(spectrolab_viewer ${viewer_SOURCES} 
     						     ${viewer_HEADERS_MOC}
     							 ${viewer_FORM_HEADERS} 
-    							 ${viewer_HEADERS_MOC})
+    							 ${viewer_HEADERS_MOC}
+    							 ${viewer_RESOURCES_RCC})
     							
 TARGET_LINK_LIBRARIES(spectrolab_viewer ${QT_LIBRARIES} 
 								${SPECTROLAB_DEP_LIBRARIES} 

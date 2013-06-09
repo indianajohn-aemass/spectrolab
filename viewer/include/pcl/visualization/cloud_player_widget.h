@@ -17,25 +17,29 @@
 namespace pcl {
 namespace visualization{
 
-class CloudRenderer {
-	public:
-		virtual ~CloudRenderer(){}
-		virtual bool setup(boost::shared_ptr<Grabber>& grabber,
-						 PCLVisualizer * visualizer)=0;
-		virtual void renderNew()=0;
-		std::string description(){return description_;};
+class CloudRenderer  : public QObject{
+	Q_OBJECT
 	protected:
 		std::string description_;
+		QVTKWidget* widget_;
 		pcl::visualization::PCLVisualizer* visualizer_;
 		boost::signals2::connection connection_;
+	public:
+		CloudRenderer(QVTKWidget* widget, PCLVisualizer * visualizer): widget_(widget), visualizer_(visualizer){}
+		virtual ~CloudRenderer(){}
+		virtual bool setup(boost::shared_ptr<Grabber>& grabber)=0;
+		virtual void renderNew()=0;
+		std::string description(){return description_;};
+
+	signals:
+		void update();
 };
 
 class CloudRendererRange  : public CloudRenderer{
 	public:
-		CloudRendererRange(std::string field);
+		CloudRendererRange(std::string field, QVTKWidget* widget, PCLVisualizer * visualizer);
 		virtual ~CloudRendererRange(){}
-		virtual bool setup(boost::shared_ptr<Grabber>& grabber,
-						 PCLVisualizer * visualizer);
+		virtual bool setup(boost::shared_ptr<Grabber>& grabber);
 		virtual void renderNew();
 	private:
 		std::string field_name_;
@@ -50,7 +54,7 @@ class CloudPlayerWidget : public QWidget{
 	Q_OBJECT
 
 	public:
-		CloudPlayerWidget();
+		CloudPlayerWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
 		virtual ~CloudPlayerWidget();
 
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
@@ -69,20 +73,17 @@ class CloudPlayerWidget : public QWidget{
 		bool playing_;
 		boost::signals2::connection progress_connection_;
 
-	protected:
-		virtual void paintEvent(QPaintEvent* e);
-
 	public slots:
-	  void playPause(QAction* act);
-	  void forward(QAction* act);
-	  void backward(QAction* act);
-	  void record(QAction* act);
-	  void resetView(QAction* act);
+		void playPause( );
+		void sliderValueChanged(int val);
+		void record( );
+		void resetView( );
+		virtual  void updateCloud();
 	protected :
-	  void enablePlayback();
-	  void disablePlayback();
-	  void progressUpdate(size_t frame_num, size_t frame_total);
-
+		void keyCB(const pcl::visualization::KeyboardEvent& e);
+		void enablePlayback();
+		void disablePlayback();
+		void progressUpdate(size_t frame_num, size_t frame_total);
 	};
 }
 

@@ -3,22 +3,24 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+#include "viewer_application.h"
+#include <pcl/io/movie_grabber.h>
+#include <pcl/visualization/cloud_player_widget.h>
+
 namespace po=boost::program_options;
 
 int main(int argc, char** argv){
-  po::options_description desc("./main ");
+  po::options_description desc("./spectroscan3d_viewer ");
   std::string infile;
   std::string ofile;
 
   desc.add_options()
     ("help", "produce help message")
-    ("input,i",po::value<std::string>(&infile)->required(), "input point cloud ")
-    ("output,o",po::value<std::string>(&ofile)->required(), "output pcd ")
-          ;
+    ("input,i",po::value<std::string>(&infile), "input point cloud or directory ")
+     ;
 
   po::positional_options_description p;
   p.add("input",1);
-  p.add("output",1);
 
   po::variables_map vm;
  try{
@@ -38,7 +40,16 @@ int main(int argc, char** argv){
  }
 
 
+ QApplication app(argc, argv);
 
+ boost::shared_ptr<pcl::Grabber> grabber;
+ grabber.reset(new pcl::MovieGrabber(infile, ".pcd"));
+ pcl::visualization::CloudPlayerWidget cplayer;
+ cplayer.setGrabber(grabber);
+ cplayer.show();
+ //SpectolabViewer spectrolab_viewer;
+ //spectrolab_viewer.show();
 
-return 0;
+ return app.exec();
+;
 }

@@ -6,12 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>670</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
+  </property>
+  <property name="toolTip">
+   <string>Spectrolab Viewer</string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -19,7 +25,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>670</width>
      <height>30</height>
     </rect>
    </property>
@@ -27,23 +33,27 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionLoad_Point_Cloud"/>
-    <addaction name="actionLoad_Scan"/>
+    <addaction name="actionLoad_scan"/>
+    <addaction name="actionLoad_movie"/>
     <addaction name="actionQuit"/>
+    <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menuScanner">
+   <widget class="QMenu" name="menuSpectroscan3D">
+    <property name="toolTip">
+     <string>manipulate a Spectroscan 3D</string>
+    </property>
     <property name="title">
-     <string>Scanner</string>
+     <string>Spectroscan3D</string>
     </property>
     <addaction name="actionConnect"/>
    </widget>
    <addaction name="menuLoad_Scan"/>
-   <addaction name="menuScanner"/>
+   <addaction name="menuSpectroscan3D"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionLoad_Point_Cloud">
+  <action name="actionLoad_scan">
    <property name="text">
-    <string>Load Point Cloud</string>
+    <string>Load Scan</string>
    </property>
   </action>
   <action name="actionLoad_Scan">
@@ -66,7 +76,32 @@
     <string>Disconnect</string>
    </property>
   </action>
+  <action name="actionLoad_movie">
+   <property name="text">
+    <string>Load Movie</string>
+   </property>
+   <property name="toolTip">
+    <string>Load PCD or Spectroscan3D Frame Movie by selecting a frame of the movie</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>334</x>
+     <y>312</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
