@@ -29,12 +29,19 @@
      <height>30</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuLoad_Scan">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menu_movie">
+     <property name="title">
+      <string>Movie</string>
+     </property>
+     <addaction name="action_movie_load"/>
+     <addaction name="action_movie_frame_rate"/>
+    </widget>
     <addaction name="actionLoad_scan"/>
-    <addaction name="actionLoad_movie"/>
+    <addaction name="menu_movie"/>
     <addaction name="actionQuit"/>
     <addaction name="separator"/>
    </widget>
@@ -47,7 +54,7 @@
     </property>
     <addaction name="actionConnect"/>
    </widget>
-   <addaction name="menuLoad_Scan"/>
+   <addaction name="menu_file"/>
    <addaction name="menuSpectroscan3D"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -76,12 +83,14 @@
     <string>Disconnect</string>
    </property>
   </action>
-  <action name="actionLoad_movie">
+  <action name="action_movie_frame_rate">
    <property name="text">
-    <string>Load Movie</string>
+    <string>Set Frame Rate</string>
    </property>
-   <property name="toolTip">
-    <string>Load PCD or Spectroscan3D Frame Movie by selecting a frame of the movie</string>
+  </action>
+  <action name="action_movie_load">
+   <property name="text">
+    <string>Load</string>
    </property>
   </action>
  </widget>

@@ -42,13 +42,8 @@ int main(int argc, char** argv){
 
  QApplication app(argc, argv);
 
- boost::shared_ptr<pcl::Grabber> grabber;
- grabber.reset(new pcl::MovieGrabber(infile, ".pcd"));
- pcl::visualization::CloudPlayerWidget cplayer;
- cplayer.setGrabber(grabber);
- cplayer.show();
- //SpectolabViewer spectrolab_viewer;
- //spectrolab_viewer.show();
+ SpectolabViewer spectrolab_viewer;
+ spectrolab_viewer.show();
 
  return app.exec();
 ;

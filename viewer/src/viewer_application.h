@@ -21,11 +21,12 @@ public:
 	public slots:
 		void loadScan();
 		void loadMovie();
-
+		void setFrameRate();
 	private:
 	Ui_MainWindow ui_;
 	pcl::visualization::CloudPlayerWidget* cplayer_;
 	boost::shared_ptr<pcl::Grabber> grabber_;
+	float frame_rate_;
 };
 
 #endif /* VIEWER_APPLICATION_H_ */

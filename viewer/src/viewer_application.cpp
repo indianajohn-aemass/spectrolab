@@ -10,14 +10,20 @@
 #include <pcl/io/file_grabber.h>
 #include <boost/filesystem.hpp>
 #include <QFileDialog>
+#include <QInputDialog>
 
 #include <pcl/io/movie_grabber.h>
 
-SpectolabViewer::SpectolabViewer() {
+SpectolabViewer::SpectolabViewer() : frame_rate_(5){
 	ui_.setupUi(this);
-	cplayer_= new pcl::visualization::CloudPlayerWidget(ui_.centralwidget);
-	QObject::connect(ui_.actionLoad_movie, SIGNAL(triggered()), this , SLOT(loadMovie()) );
+	this->ui_.centralwidget->setLayout(new QVBoxLayout);
+	cplayer_= new pcl::visualization::CloudPlayerWidget();
+	this->ui_.centralwidget->layout()->addWidget(cplayer_);
+
+	QObject::connect(ui_.action_movie_load, SIGNAL(triggered()), this , SLOT(loadMovie()) );
+	QObject::connect(ui_.action_movie_frame_rate, SIGNAL(triggered()), this , SLOT(setFrameRate()) );
 	QObject::connect(ui_.actionLoad_scan, SIGNAL(triggered()), this , SLOT(loadScan()) );
+	this->setWindowTitle("Spectrolab Viewer");
 }
 
 SpectolabViewer::~SpectolabViewer() {
@@ -33,6 +39,7 @@ void SpectolabViewer::loadMovie() {
 	boost::filesystem::path frame_path = fileName.toAscii().data();
 
 	grabber_.reset(new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() ) );
+	dynamic_cast<pcl::MovieGrabber*>( grabber_.get())->setFramesPerSecond(frame_rate_);
 	this->cplayer_->setGrabber(grabber_);
 }
 
@@ -45,4 +52,14 @@ void SpectolabViewer::loadScan() {
 
 }
 
+void SpectolabViewer::setFrameRate(){
+	bool ok;
+	int val =QInputDialog::getInteger(NULL, "How many frames per second should movies play?", "FPS: ", 4, 1, 30, 1, &ok);
+	if (ok) frame_rate_=val;
+
+	pcl::MovieGrabber* grabber = 	dynamic_cast<pcl::MovieGrabber*>( grabber_.get());
+	if (grabber!= NULL){
+		grabber->setFramesPerSecond(frame_rate_);
+	}
+}
 
