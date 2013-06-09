@@ -20,10 +20,9 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
   pcl_visualizer_->setupInteractor (ui_.qvtkwidget->GetInteractor (), ui_.qvtkwidget->GetRenderWindow ());
   ui_.qvtkwidget->update ();
 
-
-  renderers_.push_back(new CloudRendererRange("x", ui_.qvtkwidget, pcl_visualizer_));
-  renderers_.push_back(new CloudRendererRange("y", ui_.qvtkwidget, pcl_visualizer_));
-  renderers_.push_back(new CloudRendererRange("z", ui_.qvtkwidget, pcl_visualizer_));
+  addCloudRenderer(new CloudRendererRange("x"));
+  addCloudRenderer(new CloudRendererRange("y"));
+  addCloudRenderer(new CloudRendererRange("z"));
 
   QObject::connect(ui_.button_play_pause, SIGNAL(clicked()),
 		  	  this, SLOT(playPause()) );
@@ -43,10 +42,9 @@ void pcl::visualization::CloudPlayerWidget::setGrabber(
 		boost::shared_ptr<Grabber>& grabber) {
 
 	this->grabber_ = grabber;
-	this->renderers_[current_renderer_idx_]->setup(grabber);
-	connect(this->renderers_[current_renderer_idx_], SIGNAL(update()), this, SLOT(updateCloud()));
-
+	setRenderer(current_renderer_idx_);
 	is_movie_grabber_  =  (dynamic_cast<MovieGrabber*>( &(*grabber)) !=NULL);
+	this->renderers_[current_renderer_idx_]->setup(grabber_);
 
 	this->ui_.button_play_pause->setEnabled(true);
 	this->ui_.button_record->setEnabled(true);
@@ -57,6 +55,7 @@ void pcl::visualization::CloudPlayerWidget::setGrabber(
 
 void pcl::visualization::CloudPlayerWidget::addCloudRenderer(
 		CloudRenderer* renderer) {
+	renderer->init(ui_.qvtkwidget, pcl_visualizer_);
 	renderers_.push_back(renderer);
 	//todo update menu list
 }
@@ -120,6 +119,25 @@ void pcl::visualization::CloudPlayerWidget::updateCloud() {
 	this->renderers_[current_renderer_idx_]->renderNew();
 }
 
+void pcl::visualization::CloudPlayerWidget::removeRenderer(size_t idx) {
+}
+
+pcl::visualization::CloudRenderer* pcl::visualization::CloudPlayerWidget::getRenderer(size_t idx) {
+	if (idx>=renderers_.size()) return NULL;
+	return renderers_[idx];
+}
+
+void pcl::visualization::CloudPlayerWidget::setRenderer(int idx) {
+	if ( (idx >=renderers_.size()) || (idx<0) ) return;
+	this->renderers_[current_renderer_idx_]->disconnect();
+	disconnect(this->renderers_[current_renderer_idx_], SIGNAL(update()), this, SLOT(updateCloud()));
+	if (grabber_!=NULL )	this->renderers_[current_renderer_idx_]->setup(grabber_);
+
+	current_renderer_idx_=idx;
+	connect(this->renderers_[current_renderer_idx_], SIGNAL(update()), this, SLOT(updateCloud()));
+}
+
+
 void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, size_t frame_total) {
 	MovieGrabber* mg = dynamic_cast<MovieGrabber*>( &(*grabber_));
 	this->ui_.progress_bar->setMinimum(0);
@@ -130,8 +148,7 @@ void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, siz
 
 #include <pcl/visualization/point_cloud_handlers.h>
 
-pcl::visualization::CloudRendererRange::CloudRendererRange(std::string field, QVTKWidget* widget, PCLVisualizer * visualizer) :
-	CloudRenderer(widget, visualizer),
+pcl::visualization::CloudRendererRange::CloudRendererRange(std::string field) :
 	valid_grabber_(false), field_name_(field){
 	description_= "Color by ";
 	description_ = description_+field + " field";
@@ -146,12 +163,16 @@ bool pcl::visualization::CloudRendererRange::setup(
 	if ( !grabber->providesCallback<sig_cb>() ) return  false;
 
 	valid_grabber_=true;
-	this->connection_ = grabber->registerCallback<sig_cb>(
-			boost::bind(&CloudRendererRange::grabberCB, this, _1));
-
+	connection_ = this->connection_ = grabber->registerCallback<sig_cb>(
+				boost::bind(&CloudRendererRange::grabberCB, this, _1));
 	return true;
 }
 
+void pcl::visualization::CloudRendererRange::disconnect(){
+	connection_.disconnect();
+	valid_grabber_=false;
+	cloud_.reset();
+}
 void pcl::visualization::CloudRendererRange::renderNew() {
 	if(!valid_grabber_) return;
 	boost::unique_lock<boost::mutex> lock( cloud_mutex_);

@@ -19,6 +19,8 @@ SpectolabViewer::SpectolabViewer() : frame_rate_(5){
 	this->ui_.centralwidget->setLayout(new QVBoxLayout);
 	cplayer_= new pcl::visualization::CloudPlayerWidget();
 	this->ui_.centralwidget->layout()->addWidget(cplayer_);
+	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererRange("intensity"));
+	cplayer_->setRenderer(cplayer_->getNumRenderers()-1);
 
 	QObject::connect(ui_.action_movie_load, SIGNAL(triggered()), this , SLOT(loadMovie()) );
 	QObject::connect(ui_.action_movie_frame_rate, SIGNAL(triggered()), this , SLOT(setFrameRate()) );

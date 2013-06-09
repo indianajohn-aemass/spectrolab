@@ -25,9 +25,16 @@ class CloudRenderer  : public QObject{
 		pcl::visualization::PCLVisualizer* visualizer_;
 		boost::signals2::connection connection_;
 	public:
-		CloudRenderer(QVTKWidget* widget, PCLVisualizer * visualizer): widget_(widget), visualizer_(visualizer){}
+		CloudRenderer( ): widget_(NULL), visualizer_(NULL){}
 		virtual ~CloudRenderer(){}
+
+		virtual void init(QVTKWidget* widget, PCLVisualizer * visualizer){
+			widget_=widget;
+			visualizer_=visualizer;
+		}
 		virtual bool setup(boost::shared_ptr<Grabber>& grabber)=0;
+		virtual void disconnect()=0;
+
 		virtual void renderNew()=0;
 		std::string description(){return description_;};
 
@@ -37,9 +44,10 @@ class CloudRenderer  : public QObject{
 
 class CloudRendererRange  : public CloudRenderer{
 	public:
-		CloudRendererRange(std::string field, QVTKWidget* widget, PCLVisualizer * visualizer);
+		CloudRendererRange(std::string field);
 		virtual ~CloudRendererRange(){}
 		virtual bool setup(boost::shared_ptr<Grabber>& grabber);
+		virtual void disconnect();
 		virtual void renderNew();
 	private:
 		std::string field_name_;
@@ -47,6 +55,7 @@ class CloudRendererRange  : public CloudRenderer{
 		sensor_msgs::PointCloud2::ConstPtr cloud_;
 		bool valid_grabber_;
 		void grabberCB( const sensor_msgs::PointCloud2::ConstPtr& cloud);
+		boost::signals2::connection connection_;
 };
 
 
@@ -60,7 +69,9 @@ class CloudPlayerWidget : public QWidget{
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
 
 		void addCloudRenderer(CloudRenderer* renderer);
-
+		void removeRenderer(size_t idx);
+		CloudRenderer* getRenderer(size_t idx);
+		size_t getNumRenderers(){return renderers_.size();}
 	private:
 		boost::shared_ptr<Grabber> grabber_;
 		bool is_movie_grabber_;
@@ -79,6 +90,7 @@ class CloudPlayerWidget : public QWidget{
 		void record( );
 		void resetView( );
 		virtual  void updateCloud();
+		void setRenderer(int idx);
 	protected :
 		void keyCB(const pcl::visualization::KeyboardEvent& e);
 		void enablePlayback();
