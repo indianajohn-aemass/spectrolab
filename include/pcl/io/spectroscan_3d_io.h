@@ -40,7 +40,7 @@
 
 #include <spectrolab/spectroscan_3d.h>
 #include <pcl/io/grabber.h>
-
+#include <pcl/io/movie_grabber.h>
  namespace pcl{
 
 	struct PointXYZ;
@@ -116,18 +116,24 @@
 
 		void frameCB(const spectrolab::Scan::ConstPtr& scan, time_t scan_time );
 
-		template<typename PointT>
-		void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
-								double range_resolution, double x_focal, double y_focal);
-
 	protected:
 	      virtual void
 	      signalsChanged ();
 	};
 
+	template<typename PointT>
+	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
+							double range_resolution, double x_focal, double y_focal);
 
-	class Spectroscan3DFrameMovieGrabber : public Grabber{
+	class Spectroscan3DMovieGrabber : public MovieGrabber{
+	public:
+		Spectroscan3DMovieGrabber( boost::filesystem::path movie_dir);
 
+		void setSettings(const SpectroscanSettings& settings);
+	protected:
+		virtual void handleFile( const std::string& file);
+		boost::signals2::signal<spectrolab::SpectroScan3D::sig_camera_cb>* img_cb_;
+		SpectroscanSettings settings_;
 	};
 }
 

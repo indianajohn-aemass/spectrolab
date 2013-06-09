@@ -99,7 +99,7 @@ private:
     void runIO();
 
 protected:
-    virtual void handleFile(std::string& file);
+    virtual void handleFile( const std::string& file);
 
 	/*
 	 * must be called by handle file

@@ -89,7 +89,7 @@ void pcl::MovieGrabber::runIO() {
 	}
 }
 
-void pcl::MovieGrabber::handleFile(std::string& file) {
+void pcl::MovieGrabber::handleFile(const std::string& file) {
 	sensor_msgs::PointCloud2Ptr cloud(new sensor_msgs::PointCloud2);
 	Eigen::Vector4f  origin;
 	Eigen::Quaternionf rot;

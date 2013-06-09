@@ -38,7 +38,12 @@ void SpectolabViewer::loadMovie() {
 	                                                 tr("Files (*.pcd *.bin)"));
 	boost::filesystem::path frame_path = fileName.toAscii().data();
 
-	grabber_.reset(new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() ) );
+	if (frame_path.extension()==".pcd"){
+		grabber_.reset(new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() ) );
+	}
+	else{
+		grabber_.reset(new pcl::Spectroscan3DMovieGrabber( frame_path.parent_path() ) );
+	}
 	dynamic_cast<pcl::MovieGrabber*>( grabber_.get())->setFramesPerSecond(frame_rate_);
 	this->cplayer_->setGrabber(grabber_);
 }

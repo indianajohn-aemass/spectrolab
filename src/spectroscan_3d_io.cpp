@@ -11,8 +11,11 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include <pcl/console/print.h>
+#include <pcl/ros/conversions.h>
+
 template<typename PointT>
-inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
+inline void pcl::rangeImageToCloud(
 		const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
 		double range_resolution, double x_focal, double y_focal) {
 
@@ -44,6 +47,7 @@ inline void pcl::Spectroscan3DGrabber::rangeImageToCloud(
 	pt_delimeter.x =pt_delimeter.y = pt_delimeter.z =
 			pt_frame_count.x= pt_frame_count.y, pt_frame_count.z= std::numeric_limits<float>::quiet_NaN();
 }
+
 
 pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) :
 		camera_(boost::asio::ip::address::from_string(ipaddress)){
@@ -100,4 +104,37 @@ pcl::SpectroscanSettings::SpectroscanSettings(): range_resolution(0.00625),
 			x_focal_length( 1.0f/tan(30.0/180.0f*M_PI)), y_focal_length(1.0f/tan(15.0/180.0f*M_PI)),
 			cx(256.0f/2.0f), cy(64) {
 
+}
+
+pcl::Spectroscan3DMovieGrabber::Spectroscan3DMovieGrabber(
+		boost::filesystem::path movie_dir) :
+					MovieGrabber(movie_dir, ".bin"), img_cb_(NULL)  {
+	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
+}
+
+void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
+
+	spectrolab::Scan::Ptr scan(new spectrolab::Scan(spectrolab::SpectroScan3D::IMG_HEIGHT,
+													spectrolab::SpectroScan3D::IMG_WIDTH));
+	if (!scan->load(file)){
+		pcl::console::print_error("[Spectroscan3DMovieGrabber] Cannot read %s", file.c_str());
+		return;
+	}
+	if (!img_cb_->empty()){
+		(*img_cb_)(scan, getCurrentFrame());
+	}
+	PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
+	rangeImageToCloud(*scan, *xyzi, settings_.range_resolution, settings_.x_focal_length, settings_.y_focal_length);
+
+	for(size_t r=0, idx=0; r< scan->rows(); r++){
+		for(size_t c=0; c< scan->cols(); c++,idx++){
+			float amp = ((float) (*scan)[idx].amplitude);
+			(*xyzi)[idx].intensity= amp/1024.0f;
+		}
+	}
+	(*xyzi).at(0,scan->rows()-1).intensity=0;
+	(*xyzi).at(1,scan->rows()-1).intensity=0;
+	sensor_msgs::PointCloud2Ptr cloud(new sensor_msgs::PointCloud2);
+	pcl::toROSMsg<pcl::PointXYZI>(*xyzi, *cloud);
+	handleCloud(cloud, Eigen::Vector4f(0,0,0,1), Eigen::Quaternionf::Identity() );
 }

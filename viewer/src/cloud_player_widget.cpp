@@ -10,7 +10,7 @@
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
 	QWidget(parent, f),
-	current_renderer_idx_(0),
+	current_renderer_idx_(2),
 	playing_(false),
 	is_movie_grabber_(false),
 	pcl_visualizer_(NULL) {

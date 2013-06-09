@@ -214,6 +214,10 @@ namespace spectrolab{
 		 */
 		float getFrameRate() const {return frame_rate_;}
 
+
+		static const uint32_t IMG_WIDTH; //range image width
+		static const uint32_t IMG_HEIGHT; //range image height
+
 	private:
 
 		boost::signals2::signal<sig_camera_cb> frame_cb_;
@@ -269,8 +273,6 @@ namespace spectrolab{
 		static const uint16_t IMG_FRAME_DELIMITER_2; //Image frame delimiter byte 2
 
 
-		static const uint32_t IMG_WIDTH; //range image width
-		static const uint32_t IMG_HEIGHT; //range image height
 
 		void runIO();
 
