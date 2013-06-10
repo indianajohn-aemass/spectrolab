@@ -42,7 +42,7 @@
     </widget>
     <addaction name="actionLoad_scan"/>
     <addaction name="menu_movie"/>
-    <addaction name="actionQuit"/>
+    <addaction name="action_quit"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSpectroscan3D">
@@ -52,7 +52,8 @@
     <property name="title">
      <string>Spectroscan3D</string>
     </property>
-    <addaction name="actionConnect"/>
+    <addaction name="action_connect"/>
+    <addaction name="action_settings"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menuSpectroscan3D"/>
@@ -68,12 +69,12 @@
     <string>Load Scan</string>
    </property>
   </action>
-  <action name="actionQuit">
+  <action name="action_quit">
    <property name="text">
     <string>Quit</string>
    </property>
   </action>
-  <action name="actionConnect">
+  <action name="action_connect">
    <property name="text">
     <string>Connect</string>
    </property>
@@ -93,11 +94,16 @@
     <string>Load</string>
    </property>
   </action>
+  <action name="action_settings">
+   <property name="text">
+    <string>Edit Settings</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>actionQuit</sender>
+   <sender>action_quit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>

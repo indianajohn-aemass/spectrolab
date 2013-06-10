@@ -119,14 +119,20 @@ namespace spectrolab{
 	class SpectroScan3D{
 		public:
 
-		SpectroScan3D(const boost::asio::ip::address& scanner_address=
-				boost::asio::ip::address::from_string("192.168.0.27"));
+		SpectroScan3D();
 
 		~SpectroScan3D();
 
+		/*
+		 * open
+		 * Open up a connection to the lidar camera at given ip address
+		 */
+		bool open(const boost::asio::ip::address& scanner_address=
+				boost::asio::ip::address::from_string("192.168.0.27"));
+
+
 		//define callback signature typedefs
 		typedef void (sig_camera_cb) ( const Scan::ConstPtr&, time_t);
-
 
 		/*
 		 * Checks to see if the driver is connected to the
@@ -218,15 +224,15 @@ namespace spectrolab{
 		static const uint32_t IMG_WIDTH; //range image width
 		static const uint32_t IMG_HEIGHT; //range image height
 
+		void setDebugOutput( const boost::function<void (const std::string&)>& funct){
+			print_debug= funct;
+		}
+
 	private:
 
-		boost::signals2::signal<sig_camera_cb> frame_cb_;
+		boost::function<void (const std::string&)> print_debug;
 
-		/*
-		 * open
-		 * Open up a connection to the lidar camera at given ip address
-		 */
-		bool open(const boost::asio::ip::address& ipAddress);
+		boost::signals2::signal<sig_camera_cb> frame_cb_;
 
 
 		/*

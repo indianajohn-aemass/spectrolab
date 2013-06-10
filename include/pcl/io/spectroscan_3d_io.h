@@ -102,9 +102,9 @@
 		virtual float
 		getFramesPerSecond () const{return camera_.getFrameRate();}
 
-
-		void setSettings( const SpectroscanSettings settings);
-
+		void setSettings(const SpectroscanSettings& settings){
+			settings_=settings;
+		}
 
 	private:
 		spectrolab::SpectroScan3D camera_;
@@ -129,7 +129,9 @@
 	public:
 		Spectroscan3DMovieGrabber( boost::filesystem::path movie_dir);
 
-		void setSettings(const SpectroscanSettings& settings);
+		void setSettings(const SpectroscanSettings& settings){
+			settings_=settings;
+		}
 	protected:
 		virtual void handleFile( const std::string& file);
 		boost::signals2::signal<spectrolab::SpectroScan3D::sig_camera_cb>* img_cb_;

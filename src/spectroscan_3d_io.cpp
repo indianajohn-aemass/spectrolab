@@ -13,6 +13,7 @@
 
 #include <pcl/console/print.h>
 #include <pcl/ros/conversions.h>
+#include <pcl/exceptions.h>
 
 template<typename PointT>
 inline void pcl::rangeImageToCloud(
@@ -48,14 +49,20 @@ inline void pcl::rangeImageToCloud(
 			pt_frame_count.x= pt_frame_count.y, pt_frame_count.z= std::numeric_limits<float>::quiet_NaN();
 }
 
+void print_debug_output( const std::string& str){
+	pcl::console::print_debug("%s", str.c_str());
+}
 
-pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) :
-		camera_(boost::asio::ip::address::from_string(ipaddress)){
+pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) {
+
+	camera_.setDebugOutput(print_debug_output);
+	if (! camera_.open( boost::asio::ip::address::from_string(ipaddress) )){
+		throw pcl::IOException("Failed to open Spectroscan 3D Camera");
+	}
 	camera_.registerCallBack( boost::bind(&Spectroscan3DGrabber::frameCB, this, _1, _2) );
 	xyzi_cb_ = this->createSignal<sig_cb_xyzi_cloud>();
 	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
 	xyz_cb_ = this->createSignal<sig_cb_xyz_cloud>();
-
  }
 
 

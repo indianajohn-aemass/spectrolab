@@ -25,25 +25,22 @@ const uint32_t spectrolab::SpectroScan3D::IMG_HEIGHT=128;
 const uint32_t spectrolab::SpectroScan3D::IMG_WIDTH=256;
 
 namespace ba=boost::asio;
+using std::string;
 
- spectrolab::SpectroScan3D::SpectroScan3D(const boost::asio::ip::address& address) :
+void print_debug_cout(const std::string& str);
+
+ spectrolab::SpectroScan3D::SpectroScan3D() :
 		 io_service_(), io_worker_(io_service_),
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
 		 line_num_(IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
 		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH)),img_buffer_(1024)
 		 {
-	 this->open(address);
-
-	 // Set an expiration time relative to now.
-	 frame_rate_timer_.expires_from_now(boost::posix_time::seconds(2));
-	 frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));
  }
 
  bool
  spectrolab::SpectroScan3D::open(const boost::asio::ip::address& address){
 
-	std::cout << "[SpectroScan3D] Connecting to IP address  : " << address << " \n";
 
 	//Setup CMD Sockets
 	this->cmd_rx_socket_.reset(new SocketT(io_service_,
@@ -65,8 +62,20 @@ namespace ba=boost::asio;
 	sendFirmwareCmd(RESET);
 	uint8_t sys_id;
 	readFirmware(SYSTEM_ID_READ, sys_id);
-	std::cout << "Opened connection to scanner at  " << address << " with firmware version " << std::hex <<   (int) sys_id  << " \n";
 
+	std::stringstream ss;
+	ss <<"[SpectroScan3D]  Opened connection to scanner at  " << address << " with firmware version " << std::hex <<   (int) sys_id  << " \n";
+	print_debug(ss.str());
+
+	if (spectrolab::SpectroScan3D::FIRMWARE_VERSION != sys_id){
+		ss.flush();
+		ss <<"[SpectroScan3D]  Warning Firmware version ( " << std::hex << sys_id << " is different from expected " << FIRMWARE_VERSION << " \n";
+		print_debug(ss.str());
+	}
+
+	// Set an expiration time relative to now.
+	frame_rate_timer_.expires_from_now(boost::posix_time::seconds(2));
+	frame_rate_timer_.async_wait(boost::bind(&SpectroScan3D::frameRateCB, this));
 	return true;
  }
 
@@ -135,7 +144,7 @@ void spectrolab::SpectroScan3D::runIO() {
 			ss  << "[" << boost::this_thread::get_id() << "] Error: " << ec << std::endl;
 			std::string astring;
 			ss >> astring;
-			std::cout << ss;
+			print_debug(ss.str());
 		}
 }
 
@@ -143,7 +152,9 @@ void spectrolab::SpectroScan3D::handleImgFrame(const boost::system::error_code& 
 
 	if (err && (err != boost::asio::error::eof) )
     {
-      std::cout << "[SpectroScan3D] Error reading image frame : " << err << "\n";
+	  std::stringstream ss;
+      ss << "[SpectroScan3D] Error reading image frame : " << err << "\n";
+      print_debug(ss.str());
       return;
     }
 	boost::unique_lock<boost::mutex> lock(line_queue_mutex_);
@@ -200,7 +211,9 @@ void spectrolab::SpectroScan3D::handleCMDRead(const boost::system::error_code& e
 
 	if (err && (err != boost::asio::error::eof) )
     {
-      std::cout << "[SpectroScan3D] Error reading cmd : " << err << "\n";
+	  std::stringstream ss;
+	  ss << "[SpectroScan3D] Error reading cmd : " << err << "\n";
+	  print_debug(ss.str());
       return;
     }
 
@@ -270,4 +283,9 @@ bool spectrolab::Scan::load(std::string fname) {
 	ifile.read( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
 
 	return true;
+}
+
+
+void print_debug_cout(const std::string& str){
+	std::cout << str;
 }
