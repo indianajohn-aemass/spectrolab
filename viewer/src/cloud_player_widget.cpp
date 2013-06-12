@@ -7,6 +7,9 @@
 
 #include <pcl/visualization/cloud_player_widget.h>
 #include <pcl/io/movie_grabber.h>
+#include <pcl/io/pcd_recorder.h>
+
+#include <QMenu>
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
 	QWidget(parent, f),
@@ -31,11 +34,17 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 
   this->setWindowTitle("Cloud Player");
 
+  this->ui_.button_record->setPopupMode(QToolButton::MenuButtonPopup);
+  this->addRecorder( new PCDRecorder());
+
+
   this->pcl_visualizer_->registerKeyboardCallback(boost::bind(&CloudPlayerWidget::keyCB, this, _1));
   resetView();
  }
 
 pcl::visualization::CloudPlayerWidget::~CloudPlayerWidget() {
+	for(int i=0; i< recorders_.size(); i++) delete recorders_[i];
+	for(int i=0; i< renderers_.size(); i++) delete renderers_[i];
 }
 
 void pcl::visualization::CloudPlayerWidget::setGrabber(
@@ -94,7 +103,7 @@ void pcl::visualization::CloudPlayerWidget::enablePlayback() {
 	MovieGrabber* mg = dynamic_cast<MovieGrabber*>( &(*grabber_));
 	QObject::connect(ui_.progress_bar, SIGNAL(valueChanged(int)), this, SLOT(sliderValueChanged(int)));
 	this->ui_.progress_bar->setEnabled(true);
-	this->ui_.progress_bar->setMaximum(mg->getFrameCount());
+	this->ui_.progress_bar->setMaximum(mg->getFrameCount()-1);
 	progress_connection_ = this->grabber_->registerCallback<MovieGrabber::sig_frame_num_cb>(
 			boost::bind(&CloudPlayerWidget::progressUpdate, this , _1, _2));
 }
@@ -137,6 +146,15 @@ void pcl::visualization::CloudPlayerWidget::setRenderer(int idx) {
 	connect(this->renderers_[current_renderer_idx_], SIGNAL(update()), this, SLOT(updateCloud()));
 }
 
+void pcl::visualization::CloudPlayerWidget::addRecorder(Recorder* recorder) {
+	assert(recorder!=NULL);
+	recorders_.push_back(recorder);
+
+	QAction* record_action= new QAction(recorder->getDescription().c_str(), NULL);
+	connect(record_action, SIGNAL(triggered()), this, SLOT(record()) );
+	this->ui_.button_record->setMenu(new QMenu);
+	this->ui_.button_record->menu()->addAction(record_action);
+}
 
 void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, size_t frame_total) {
 	MovieGrabber* mg = dynamic_cast<MovieGrabber*>( &(*grabber_));

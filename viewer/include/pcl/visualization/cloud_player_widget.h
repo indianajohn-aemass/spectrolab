@@ -10,6 +10,8 @@
 
 #include "ui_cloud_player.h"
 #include <pcl/io/grabber.h>
+#include <pcl/io/recorder.h>
+
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include <QWidget>
@@ -69,6 +71,9 @@ class CloudPlayerWidget : public QWidget{
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
 
 		void addCloudRenderer(CloudRenderer* renderer);
+
+		void addRecorder(Recorder* recorder);
+
 		void removeRenderer(size_t idx);
 		CloudRenderer* getRenderer(size_t idx);
 		size_t getNumRenderers(){return renderers_.size();}
@@ -79,6 +84,8 @@ class CloudPlayerWidget : public QWidget{
 
 		Ui_CloudPlayer ui_;
 		std::vector<CloudRenderer*> renderers_;
+		std::vector<Recorder*> recorders_;
+
 		uint32_t current_renderer_idx_;
 
 		bool playing_;
