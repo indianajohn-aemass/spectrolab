@@ -10,11 +10,13 @@
 #include <pcl/io/pcd_recorder.h>
 
 #include <QMenu>
+#include <qfiledialog.h>
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
 	QWidget(parent, f),
 	current_renderer_idx_(2),
 	playing_(false),
+	recording_(false),
 	is_movie_grabber_(false),
 	pcl_visualizer_(NULL) {
   ui_.setupUi(this);
@@ -85,6 +87,35 @@ void pcl::visualization::CloudPlayerWidget::playPause( ) {
 }
 
 void pcl::visualization::CloudPlayerWidget::record( ) {
+	if (recording_){
+		recorders_[current_recorder_idx_]->stop();
+		this->ui_.button_record->setIcon(QIcon(":/viewer/imgs/recorddisabled.png"));
+		this->ui_.button_record->menu()->setEnabled(true);
+		return;
+	}
+
+	if (sender() != ui_.button_record){
+		for(int i=0; i< ui_.button_record->menu()->actions().size(); i++){
+			if (sender() == ui_.button_record->menu()->actions()[i]){
+				current_recorder_idx_ = i;
+				break;
+			}
+		}
+	}
+	boost::filesystem::path record_path = QFileDialog::getSaveFileName(NULL,
+									tr("Choose the root file/folder of the recording."),
+									"", "").toAscii().data();
+
+	if (record_path.empty()) return;
+	record_path.replace_extension("");
+
+	recorders_[current_recorder_idx_]->setGrabber(grabber_);
+	recorders_[current_recorder_idx_]->setOutput(record_path.parent_path().string(),
+												 record_path.filename().string(),0);
+	recorders_[current_recorder_idx_]->start();
+	this->ui_.button_record->setIcon(QIcon(":/viewer/imgs/recordpressed.png"));
+	this->ui_.button_record->menu()->setEnabled(false);
+	recording_ = true;
 }
 
 void pcl::visualization::CloudPlayerWidget::resetView( ) {

@@ -71,8 +71,12 @@ class CloudPlayerWidget : public QWidget{
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
 
 		void addCloudRenderer(CloudRenderer* renderer);
+		uint32_t  currentRendererIDX();
+		void setCurrentRenderer(uint32_t idx);
 
 		void addRecorder(Recorder* recorder);
+		uint32_t  currentRecorderIDX();
+		void setCurrentRecorder(uint32_t idx);
 
 		void removeRenderer(size_t idx);
 		CloudRenderer* getRenderer(size_t idx);
@@ -87,7 +91,9 @@ class CloudPlayerWidget : public QWidget{
 		std::vector<Recorder*> recorders_;
 
 		uint32_t current_renderer_idx_;
+		uint32_t current_recorder_idx_;
 
+		bool recording_;
 		bool playing_;
 		boost::signals2::connection progress_connection_;
 
@@ -103,6 +109,8 @@ class CloudPlayerWidget : public QWidget{
 		void enablePlayback();
 		void disablePlayback();
 		void progressUpdate(size_t frame_num, size_t frame_total);
+		void startRecording();
+		void stopRecording();
 	};
 }
 
