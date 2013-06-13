@@ -11,7 +11,7 @@
 namespace po=boost::program_options;
 
 std::string file_root;
-size_t number_to_grab=1, count=0;
+uint32_t number_to_grab=1, count=0;
 
 void savecloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
 
@@ -19,7 +19,7 @@ void savecloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
 	path.replace_extension("");
 
 	char fname[300];
-	sprintf(fname, "%s%d.pcd", path.c_str(),count);
+	sprintf(fname, "%s%ul.pcd", path.c_str(),count);
 	std::cout << "Saving to " << fname << " \n";
 	pcl::io::savePCDFile(fname, *cloud);
 	count++;
@@ -36,7 +36,7 @@ int main(int argc, char** argv){
     ("help", "produce help message")
     //("input,i",po::value<std::string>(&infile)->required(), "input point cloud ")
     ("output,o",po::value<std::string>(&file_root)->required(), "output pcd ")
-    ("number,n",po::value<size_t>(&number_to_grab)->default_value(1), "number of pcd to grab")
+    ("number,n",po::value<uint32_t>(&number_to_grab)->default_value(1), "number of pcd to grab")
     ;
 
   po::positional_options_description p;

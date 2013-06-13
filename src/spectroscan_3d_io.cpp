@@ -145,3 +145,34 @@ void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
 	pcl::toROSMsg<pcl::PointXYZI>(*xyzi, *cloud);
 	handleCloud(cloud, Eigen::Vector4f(0,0,0,1), Eigen::Quaternionf::Identity() );
 }
+
+pcl::Spectroscan3DRecorder::Spectroscan3DRecorder() :
+		Recorder("Record Spectroscan 3D Frames"),
+		valid_grabber_(false){
+}
+
+bool pcl::Spectroscan3DRecorder::setGrabber(
+		const boost::shared_ptr<Grabber>& grabber) {
+}
+
+bool pcl::Spectroscan3DRecorder::hasValidGrabber() {
+	return valid_grabber_;
+}
+
+bool pcl::Spectroscan3DRecorder::isRecording() {
+	return connection_.connected();
+}
+
+void pcl::Spectroscan3DRecorder::start() {
+	if (!valid_grabber_) return;
+	connection_ = grabber_->registerCallback<spectrolab::SpectroScan3D::sig_camera_cb>(boost::bind(&Spectroscan3DRecorder::frameCB, this, _1, _2) );
+}
+
+void pcl::Spectroscan3DRecorder::stop() {
+	connection_.disconnect();
+}
+
+void pcl::Spectroscan3DRecorder::frameCB(const spectrolab::Scan::ConstPtr& scan,
+		time_t t) {
+	scan->save(genNextFileName());
+}

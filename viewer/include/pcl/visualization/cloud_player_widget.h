@@ -16,6 +16,8 @@
 
 #include <QWidget>
 
+class QErrorMessage;
+
 namespace pcl {
 namespace visualization{
 
@@ -71,16 +73,16 @@ class CloudPlayerWidget : public QWidget{
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
 
 		void addCloudRenderer(CloudRenderer* renderer);
-		uint32_t  currentRendererIDX();
+		uint32_t  currentRendererIDX(){return current_renderer_idx_;}
 		void setCurrentRenderer(uint32_t idx);
-
-		void addRecorder(Recorder* recorder);
-		uint32_t  currentRecorderIDX();
-		void setCurrentRecorder(uint32_t idx);
-
-		void removeRenderer(size_t idx);
 		CloudRenderer* getRenderer(size_t idx);
 		size_t getNumRenderers(){return renderers_.size();}
+
+
+		void addRecorder(Recorder* recorder);
+		uint32_t  currentRecorderIDX(){return current_recorder_idx_;}
+		void setCurrentRecorder(uint32_t idx);
+
 	private:
 		boost::shared_ptr<Grabber> grabber_;
 		bool is_movie_grabber_;
@@ -96,6 +98,8 @@ class CloudPlayerWidget : public QWidget{
 		bool recording_;
 		bool playing_;
 		boost::signals2::connection progress_connection_;
+
+		QErrorMessage* error_msg_;
 
 	public slots:
 		void playPause( );

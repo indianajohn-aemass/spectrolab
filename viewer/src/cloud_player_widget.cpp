@@ -11,6 +11,7 @@
 
 #include <QMenu>
 #include <qfiledialog.h>
+#include <qerrormessage.h>
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
 	QWidget(parent, f),
@@ -18,8 +19,16 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 	playing_(false),
 	recording_(false),
 	is_movie_grabber_(false),
-	pcl_visualizer_(NULL) {
+	pcl_visualizer_(NULL),
+	error_msg_(new QErrorMessage){
+
   ui_.setupUi(this);
+  this->ui_.button_record->setPopupMode(QToolButton::MenuButtonPopup);
+  this->ui_.button_record->setMenu(new QMenu);
+
+  this->ui_.button_play_pause->setPopupMode(QToolButton::MenuButtonPopup);
+  this->ui_.button_play_pause->setMenu(new QMenu);
+
   pcl_visualizer_ = new pcl::visualization::PCLVisualizer ("", false);
   ui_.qvtkwidget->SetRenderWindow(pcl_visualizer_->getRenderWindow ());
   pcl_visualizer_->setupInteractor (ui_.qvtkwidget->GetInteractor (), ui_.qvtkwidget->GetRenderWindow ());
@@ -36,7 +45,6 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 
   this->setWindowTitle("Cloud Player");
 
-  this->ui_.button_record->setPopupMode(QToolButton::MenuButtonPopup);
   this->addRecorder( new PCDRecorder());
 
 
@@ -47,6 +55,7 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 pcl::visualization::CloudPlayerWidget::~CloudPlayerWidget() {
 	for(int i=0; i< recorders_.size(); i++) delete recorders_[i];
 	for(int i=0; i< renderers_.size(); i++) delete renderers_[i];
+	delete error_msg_;
 }
 
 void pcl::visualization::CloudPlayerWidget::setGrabber(
@@ -102,14 +111,22 @@ void pcl::visualization::CloudPlayerWidget::record( ) {
 			}
 		}
 	}
+
+	recorders_[current_recorder_idx_]->setGrabber(grabber_);
+
+	if (!recorders_[current_recorder_idx_]->hasValidGrabber()){
+		error_msg_->showMessage("Error : Input stream is not supported by selected recorder.");
+		return;
+	}
+
 	boost::filesystem::path record_path = QFileDialog::getSaveFileName(NULL,
 									tr("Choose the root file/folder of the recording."),
 									"", "").toAscii().data();
 
-	if (record_path.empty()) return;
+	if (record_path.empty())  return;
+
 	record_path.replace_extension("");
 
-	recorders_[current_recorder_idx_]->setGrabber(grabber_);
 	recorders_[current_recorder_idx_]->setOutput(record_path.parent_path().string(),
 												 record_path.filename().string(),0);
 	recorders_[current_recorder_idx_]->start();
@@ -159,8 +176,6 @@ void pcl::visualization::CloudPlayerWidget::updateCloud() {
 	this->renderers_[current_renderer_idx_]->renderNew();
 }
 
-void pcl::visualization::CloudPlayerWidget::removeRenderer(size_t idx) {
-}
 
 pcl::visualization::CloudRenderer* pcl::visualization::CloudPlayerWidget::getRenderer(size_t idx) {
 	if (idx>=renderers_.size()) return NULL;
@@ -183,8 +198,17 @@ void pcl::visualization::CloudPlayerWidget::addRecorder(Recorder* recorder) {
 
 	QAction* record_action= new QAction(recorder->getDescription().c_str(), NULL);
 	connect(record_action, SIGNAL(triggered()), this, SLOT(record()) );
-	this->ui_.button_record->setMenu(new QMenu);
 	this->ui_.button_record->menu()->addAction(record_action);
+}
+
+void pcl::visualization::CloudPlayerWidget::setCurrentRecorder(uint32_t idx) {
+	if (recorders_.size()<= idx) return;
+	current_recorder_idx_=idx;
+}
+
+void pcl::visualization::CloudPlayerWidget::setCurrentRenderer(uint32_t idx) {
+	if (renderers_.size()<= idx) return;
+	current_renderer_idx_=idx;
 }
 
 void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, size_t frame_total) {

@@ -25,6 +25,13 @@ frame_rate_(5){
 	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererRange("intensity"));
 	cplayer_->setRenderer(cplayer_->getNumRenderers()-1);
 
+	cplayer_->addRecorder(new pcl::Spectroscan3DRecorder);
+
+	bool ok;
+	cplayer_->setCurrentRecorder(settings_.value("recorder_idx", 0).toInt(&ok));
+	cplayer_->setCurrentRenderer(settings_.value("renderer_idx", 0).toInt(&ok));
+
+
 	QObject::connect(ui_.action_movie_load, SIGNAL(triggered()), this , SLOT(loadMovie()) );
 	QObject::connect(ui_.action_movie_frame_rate, SIGNAL(triggered()), this , SLOT(setFrameRate()) );
 	QObject::connect(ui_.actionLoad_scan, SIGNAL(triggered()), this , SLOT(loadScan()) );
@@ -43,6 +50,8 @@ frame_rate_(5){
 SpectolabViewer::~SpectolabViewer() {
 	delete cplayer_;
 	settings_.setValue("Frame Rate", frame_rate_);
+	settings_.setValue("renderer_idx", cplayer_->currentRendererIDX());
+	settings_.setValue("recorder_idx", cplayer_->currentRecorderIDX());
 }
 #include <qlabel.h>
 
