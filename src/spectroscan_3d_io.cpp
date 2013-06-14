@@ -15,32 +15,93 @@
 #include <pcl/ros/conversions.h>
 #include <pcl/exceptions.h>
 
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/filesystem.hpp>
+
+pcl::SpectroscanSettings::SpectroscanSettings():
+		 	range_resolution(0.00625), range_offset(0),
+			x_angle_delta(0.1385/180*M_PI), y_angle_delta(.209/180*M_PI),
+			min_range(0), max_range(20){
+}
+
+bool pcl::SpectroscanSettings::load(std::string fname) {
+    using boost::property_tree::ptree;
+    ptree pt;
+
+    double t_max_range, t_min_range,t_range_offset,
+    	 t_y_ange_delta , t_x_ange_delta;
+
+    // Load the ini file into the property tree. If reading fails
+    // (cannot open file, parse error), an exception is thrown.
+    try{
+        read_ini(fname, pt);
+        t_max_range = pt.get<double>("max_range");
+        t_min_range = pt.get<double>("min_range");
+        t_range_offset = pt.get<double>("range_offset");
+        t_y_ange_delta = pt.get<double>("y_angle_delta");
+        t_x_ange_delta = pt.get<double>("x_angle_delta");
+    }
+    catch(std::exception& e){
+    	pcl::console::print_error("[SpectroscanSettings::load] Error : %s", e.what());
+    	return false;
+    }
+    range_offset = t_range_offset;
+    max_range = t_max_range;
+    min_range = t_min_range;
+    x_angle_delta = t_x_ange_delta;
+    y_angle_delta = t_y_ange_delta;
+	return true;
+}
+
+void pcl::SpectroscanSettings::save(std::string ofname) {
+		boost::filesystem::path opath(ofname);
+		opath.replace_extension(".ini");
+	   // Create an empty property tree object
+	   using boost::property_tree::ptree;
+	   ptree pt;
+
+	   pt.put("max_range", max_range);
+	   pt.put("min_range", min_range);
+	   pt.put("range_offset", range_offset);
+	   pt.put("y_angle_delta", y_angle_delta);
+	   pt.put("x_angle_delta", x_angle_delta);
+
+	   // Write the property tree to the XML file.
+	   write_ini(opath.string(), pt);
+}
+
+
 template<typename PointT>
 inline void pcl::rangeImageToCloud(
 		const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
-		double range_resolution, double x_focal, double y_focal) {
+		const SpectroscanSettings& settings) {
 
 	cloud.resize(scan.cols()*scan.rows());
 	cloud.width = scan.cols();
 	cloud.height = scan.rows();
 	cloud.sensor_origin_ << 0,0,0,1;
 	cloud.sensor_orientation_ = Eigen::Quaternionf::Identity();
-	cloud.is_dense=true;
+	cloud.is_dense=false;
 
 	float mx = scan.cols()/2.0f;
 	float my = scan.rows()/2.0f;
-	x_focal= x_focal*mx;
-	y_focal = y_focal*my;
+
 
 	for(size_t r=0, idx=0; r< scan.rows(); r++){
 		for(size_t c=0; c< scan.cols(); c++,idx++){
 			double range = (float) scan[idx].range; //scan(r,c).range ;
-			range*=range_resolution;
+			range=settings.range_resolution *range + settings.range_offset;
+			if ( (range> settings.max_range) || (range< settings.min_range) ){
+				cloud[idx].x= cloud[idx].y, cloud[idx].z= std::numeric_limits<float>::quiet_NaN();
+				continue;
+			}
 			cloud[idx].z= range;
 			float dx = c-mx;
+			cloud[idx].x = sin(dx*settings.x_angle_delta)*range;
 			float dy = r-my;
-			cloud[idx].x= dx*range/x_focal;
-			cloud[idx].y= dy*range/y_focal;
+			cloud[idx].y = sin(dy*settings.y_angle_delta)*range;
 		}
 	}
 	PointT& pt_delimeter = cloud.at(0,scan.rows()-1);
@@ -82,12 +143,12 @@ void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan, 
 	}
 	if (!xyz_cb_->empty()){
 		PointCloud<pcl::PointXYZ>::Ptr xyz(new pcl::PointCloud<pcl::PointXYZ>);
-		rangeImageToCloud(*scan, *xyz, settings_.range_resolution, settings_.x_focal_length, settings_.y_focal_length);
+		rangeImageToCloud(*scan, *xyz, settings_);
 		(*xyz_cb_)(xyz);
 	}
 	if (!xyzi_cb_->empty()){
 		PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
-		rangeImageToCloud(*scan, *xyzi, settings_.range_resolution, settings_.x_focal_length, settings_.y_focal_length);
+		rangeImageToCloud(*scan, *xyzi, settings_);
 
 		for(size_t r=0, idx=0; r< scan->rows(); r++){
 			for(size_t c=0; c< scan->cols(); c++,idx++){
@@ -107,15 +168,10 @@ void pcl::Spectroscan3DGrabber::signalsChanged() {
 	xyz_cb_ = this->find_signal<sig_cb_xyz_cloud>();
 }
 
-pcl::SpectroscanSettings::SpectroscanSettings(): range_resolution(0.00625),
-			x_focal_length( 1.0f/tan(30.0/180.0f*M_PI)), y_focal_length(1.0f/tan(15.0/180.0f*M_PI)),
-			cx(256.0f/2.0f), cy(64) {
-
-}
-
 pcl::Spectroscan3DMovieGrabber::Spectroscan3DMovieGrabber(
-		boost::filesystem::path movie_dir) :
-					MovieGrabber(movie_dir, ".bin"), img_cb_(NULL)  {
+		boost::filesystem::path movie_dir, bool use_extention) :
+					MovieGrabber(movie_dir, use_extention ? ".ssi" : ""),
+					img_cb_(NULL)  {
 	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
 }
 
@@ -131,7 +187,7 @@ void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
 		(*img_cb_)(scan, getCurrentFrame());
 	}
 	PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
-	rangeImageToCloud(*scan, *xyzi, settings_.range_resolution, settings_.x_focal_length, settings_.y_focal_length);
+	rangeImageToCloud(*scan, *xyzi, settings_);
 
 	for(size_t r=0, idx=0; r< scan->rows(); r++){
 		for(size_t c=0; c< scan->cols(); c++,idx++){
@@ -149,10 +205,13 @@ void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
 pcl::Spectroscan3DRecorder::Spectroscan3DRecorder() :
 		Recorder("Record Spectroscan 3D Frames"),
 		valid_grabber_(false){
+
 }
 
-bool pcl::Spectroscan3DRecorder::setGrabber(
-		const boost::shared_ptr<Grabber>& grabber) {
+bool pcl::Spectroscan3DRecorder::setGrabber( const boost::shared_ptr<Grabber>& grabber) {
+	valid_grabber_ =  grabber_->providesCallback<spectrolab::SpectroScan3D::sig_camera_cb>();
+	grabber_ = grabber;
+	return valid_grabber_;
 }
 
 bool pcl::Spectroscan3DRecorder::hasValidGrabber() {
@@ -174,5 +233,6 @@ void pcl::Spectroscan3DRecorder::stop() {
 
 void pcl::Spectroscan3DRecorder::frameCB(const spectrolab::Scan::ConstPtr& scan,
 		time_t t) {
-	scan->save(genNextFileName());
+	scan->save(genNextFileName()+".ssi");
 }
+

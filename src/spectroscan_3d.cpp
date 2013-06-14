@@ -272,15 +272,43 @@ void spectrolab::SpectroScan3D::frameRateCB() {
 
 void spectrolab::Scan::save(std::string fname) const {
 	std::ofstream ofile(fname.c_str());
-	ofile.write( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
+	//ofile.write( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
+
+	for( int r=this->rows_-1; r>=0 ; r--){
+		if (r%2==0){ //laser went from right to left
+			for(int c=columns_-1; c>=0 ; c--){
+				ofile.write( (char*) &(*this)(r,c).amplitude, 2);
+				ofile.write( (char*) &(*this)(r,c).range, 2);
+			}
+		}
+		else{ //laser goes from left to right
+			for(int c=0; c<columns_; c++){
+				ofile.write( (char*) &(*this)(r,c).amplitude, 2);
+				ofile.write( (char*) &(*this)(r,c).range, 2);
+			}
+		}
+	}
 }
 
 bool spectrolab::Scan::load(std::string fname) {
 
 	std::ifstream ifile(fname.c_str());
 	if (!ifile.is_open()) return false;
-	size_t n_to_read=sizeof(Pixel)*this->pixel_data_.size();
-	ifile.read( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
+
+	for( int r=this->rows_-1; r>=0 ; r--){
+		if (r%2==0){ //laser went from right to left
+			for(int c=columns_-1; c>=0 ; c--){
+				ifile.read( (char*) &(*this)(r,c).amplitude, 2);
+				ifile.read( (char*) &(*this)(r,c).range, 2);
+			}
+		}
+		else{ //laser goes from left to right
+			for(int c=0; c<columns_; c++){
+				ifile.read( (char*) &(*this)(r,c).amplitude, 2);
+				ifile.read( (char*) &(*this)(r,c).range, 2);
+			}
+		}
+	}
 
 	return true;
 }

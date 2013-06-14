@@ -23,13 +23,15 @@ pcl::MovieGrabber::MovieGrabber(const boost::filesystem::path movie_folder, std:
 		return;
 	}
 
-	if (movie_folder.extension() == ext){
+	if (boost::filesystem::is_regular_file(movie_folder) &&
+			(movie_folder.extension().string()== ext) ){
 		file_names_.push_back(movie_folder.string());
 	}
 	else{
 		boost::filesystem::directory_iterator diter(movie_folder), dend;
 		for(;diter!= dend; diter++){
-			if (diter->path().extension()==ext)
+			if ( (diter->path().extension()==ext)
+					&& (boost::filesystem::is_regular_file(diter->path() ) ) )
 				file_names_.push_back(diter->path().string());
 		}
 		std::sort(file_names_.begin(), file_names_.end());
@@ -68,6 +70,7 @@ size_t pcl::MovieGrabber::getFrameCount() {
 
 void pcl::MovieGrabber::setFrameNumber(size_t frame_number) {
 	boost::unique_lock<boost::mutex> lock(frame_mutex_);
+	if (frame_number>= this->file_names_.size()) return;
 	frame_idx_ = frame_number;
 }
 

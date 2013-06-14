@@ -13,6 +13,21 @@
 #include <qfiledialog.h>
 #include <qerrormessage.h>
 
+#include <vtkInteractorStyleTrackballCamera.h>
+
+
+class InteractorStyle : public pcl::visualization::PCLVisualizerInteractorStyle {
+public:
+	  vtkTypeMacro(vtkInteractorStyleTrackballCamera,InteractorStyle);
+    // Keyboard events
+    virtual void
+    OnKeyDown (){
+	 vtkInteractorStyleTrackballCamera::OnKeyDown();
+	};
+};
+
+
+
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
 	QWidget(parent, f),
 	current_renderer_idx_(2),
@@ -31,8 +46,12 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 
   pcl_visualizer_ = new pcl::visualization::PCLVisualizer ("", false);
   ui_.qvtkwidget->SetRenderWindow(pcl_visualizer_->getRenderWindow ());
-  pcl_visualizer_->setupInteractor (ui_.qvtkwidget->GetInteractor (), ui_.qvtkwidget->GetRenderWindow ());
+  pcl_visualizer_->setupInteractor (ui_.qvtkwidget->GetInteractor (),
+		  	  	  	  	  	  	  	ui_.qvtkwidget->GetRenderWindow () ) ;
+  ui_.qvtkwidget->GetInteractor ()->SetInteractorStyle(pcl_visualizer_->getInteractorStyle());
   ui_.qvtkwidget->update ();
+  ui_.qvtkwidget->GetInteractor()->RemoveObservers(vtkCommand::ExitEvent);
+
 
   addCloudRenderer(new CloudRendererRange("x"));
   addCloudRenderer(new CloudRendererRange("y"));

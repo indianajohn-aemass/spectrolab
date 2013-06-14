@@ -7,13 +7,17 @@
 
 #include "viewer_application.h"
 #include <pcl/io/spectroscan_3d_io.h>
-#include <pcl/io/file_grabber.h>
+#include <pcl/io/movie_grabber.h>
+#include "spectroscan_settings_widget.h"
+
 #include <boost/filesystem.hpp>
+
+
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QErrorMessage>
+#include <qlabel.h>
 
-#include <pcl/io/movie_grabber.h>
 
 SpectolabViewer::SpectolabViewer() :
 settings_("Open Perception", "Spectrolab Viewer"),
@@ -31,7 +35,6 @@ frame_rate_(5){
 	cplayer_->setCurrentRecorder(settings_.value("recorder_idx", 0).toInt(&ok));
 	cplayer_->setCurrentRenderer(settings_.value("renderer_idx", 0).toInt(&ok));
 
-
 	QObject::connect(ui_.action_movie_load, SIGNAL(triggered()), this , SLOT(loadMovie()) );
 	QObject::connect(ui_.action_movie_frame_rate, SIGNAL(triggered()), this , SLOT(setFrameRate()) );
 	QObject::connect(ui_.actionLoad_scan, SIGNAL(triggered()), this , SLOT(loadScan()) );
@@ -45,39 +48,54 @@ frame_rate_(5){
 		bool ok;
 		frame_rate_ = settings_.value("Frame Rate", 5).toFloat(&ok);
 	}
+
+	settings_widget_ = new SpectroscanSettingsWidget(&spectroscan_settings_);
+	connect(settings_widget_, SIGNAL(settingsApplied()), this, SLOT(spectroscan3dSettingsApplied()));
+
 }
 
 SpectolabViewer::~SpectolabViewer() {
-	delete cplayer_;
 	settings_.setValue("Frame Rate", frame_rate_);
 	settings_.setValue("renderer_idx", cplayer_->currentRendererIDX());
 	settings_.setValue("recorder_idx", cplayer_->currentRecorderIDX());
+	settings_widget_->close();
+	delete cplayer_;
+	delete settings_widget_;
 }
-#include <qlabel.h>
 
 void SpectolabViewer::loadMovie() {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Select a frame of the movie"),
 	                                                settings_.value("data_path","").toString(),
-	                                                 tr("Files (*.pcd *.bin)"));
+	                                                 tr("Files (*.pcd  Frame* *.ssi)"));
 	if (fileName.size() ==0) return;
 	boost::filesystem::path frame_path = fileName.toAscii().data();
 	QString save_path = frame_path.parent_path().c_str();
 	settings_.setValue("data_path", save_path);
 
+	pcl::MovieGrabber* mg;
 	if (frame_path.extension()==".pcd"){
-		grabber_.reset(new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() ) );
+		mg = new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() );
+	}
+	else if (frame_path.extension()==".ssimg"){
+		mg = new pcl::Spectroscan3DMovieGrabber( frame_path.parent_path(),true );
 	}
 	else{
-		grabber_.reset(new pcl::Spectroscan3DMovieGrabber( frame_path.parent_path() ) );
+		mg = new pcl::Spectroscan3DMovieGrabber( frame_path.parent_path(),false );
 	}
-	dynamic_cast<pcl::MovieGrabber*>( grabber_.get())->setFramesPerSecond(frame_rate_);
+	if (mg->getFrameCount() ==0 ){
+		statusBar()->showMessage("Could no play "+ save_path, 2000);
+		delete mg;
+		return;
+	}
+	mg->setFramesPerSecond(frame_rate_);
+	grabber_.reset(mg);
 	this->cplayer_->setGrabber(grabber_);
 }
 
 void SpectolabViewer::loadScan() {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Select PCD or Spectroscan image frame"),
 													 settings_.value("data_path","").toString(),
-	                                                 tr("Files (*.pcd *.bin)"));
+	                                                 tr("Files (*.pcd Frame* *.ssi)"));
 	if (fileName.size() ==0) return;
 	boost::filesystem::path frame_path = fileName.toAscii().data();
 
@@ -122,5 +140,20 @@ void SpectolabViewer::spectroscan3dConnect(){
 }
 
 void SpectolabViewer::spectroscan3dSettings(){
-
+	settings_widget_->show();
 }
+
+void SpectolabViewer::spectroscan3dSettingsApplied(){
+	if ( dynamic_cast<pcl::Spectroscan3DGrabber*>( grabber_.get()) !=NULL){
+		dynamic_cast<pcl::Spectroscan3DGrabber*>( grabber_.get())->setSettings(spectroscan_settings_);
+	}
+	if ( dynamic_cast<pcl::Spectroscan3DMovieGrabber*>( grabber_.get()) !=NULL){
+		dynamic_cast<pcl::Spectroscan3DMovieGrabber*>( grabber_.get())->setSettings(spectroscan_settings_);
+	}
+}
+
+void SpectolabViewer::closeEvent(QCloseEvent* event) {
+	this->settings_widget_->close();
+	QMainWindow::closeEvent(event);
+}
+

@@ -52,14 +52,19 @@
 
 	struct SpectroscanSettings{
 		double range_resolution;
-		double x_focal_length;
-		double y_focal_length;
-		double cx;
-		double cy;
+		double range_offset;
+		double x_angle_delta; //radians
+		double y_angle_delta; //radians
+		double min_range;
+		double max_range;
 		SpectroscanSettings();
 		bool load(std::string fname);
 		void save(std::string ofname);
 	};
+
+	template<typename PointT>
+	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
+							const SpectroscanSettings& settings);
 
 	/*
 	  /** \brief Grabber for the Spectrolab Lidar Camera
@@ -124,14 +129,11 @@
 	      signalsChanged ();
 	};
 
-	template<typename PointT>
-	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
-							double range_resolution, double x_focal, double y_focal);
 
 
 	class Spectroscan3DMovieGrabber : public MovieGrabber{
 	public:
-		Spectroscan3DMovieGrabber( boost::filesystem::path movie_dir);
+		Spectroscan3DMovieGrabber( boost::filesystem::path movie_dir, bool use_extention=false);
 
 		void setSettings(const SpectroscanSettings& settings){
 			settings_=settings;
