@@ -16,8 +16,6 @@
 #include <QWidget>
 #include <qsettings.h>
 
-
-
 class SpectolabViewer : public QMainWindow{
 	Q_OBJECT
 public:

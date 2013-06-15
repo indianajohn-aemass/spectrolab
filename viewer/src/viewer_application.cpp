@@ -27,7 +27,8 @@ frame_rate_(5){
 	cplayer_= new pcl::visualization::CloudPlayerWidget();
 	this->ui_.centralwidget->layout()->addWidget(cplayer_);
 	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererRange("intensity"));
-	cplayer_->setRenderer(cplayer_->getNumRenderers()-1);
+	cplayer_->setCurrentRenderer(cplayer_->getNumRenderers()-1);
+	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererBW);
 
 	cplayer_->addRecorder(new pcl::Spectroscan3DRecorder);
 

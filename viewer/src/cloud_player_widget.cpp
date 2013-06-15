@@ -5,27 +5,14 @@
  *      Author: asher
  */
 
-#include <pcl/visualization/cloud_player_widget.h>
-#include <pcl/io/movie_grabber.h>
-#include <pcl/io/pcd_recorder.h>
 
 #include <QMenu>
 #include <qfiledialog.h>
 #include <qerrormessage.h>
 
-#include <vtkInteractorStyleTrackballCamera.h>
-
-
-class InteractorStyle : public pcl::visualization::PCLVisualizerInteractorStyle {
-public:
-	  vtkTypeMacro(vtkInteractorStyleTrackballCamera,InteractorStyle);
-    // Keyboard events
-    virtual void
-    OnKeyDown (){
-	 vtkInteractorStyleTrackballCamera::OnKeyDown();
-	};
-};
-
+#include <pcl/visualization/cloud_player_widget.h>
+#include <pcl/io/movie_grabber.h>
+#include <pcl/io/pcd_recorder.h>
 
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::WindowFlags f):
@@ -81,9 +68,7 @@ void pcl::visualization::CloudPlayerWidget::setGrabber(
 		boost::shared_ptr<Grabber>& grabber) {
 
 	this->grabber_ = grabber;
-	setRenderer(current_renderer_idx_);
 	is_movie_grabber_  =  (dynamic_cast<MovieGrabber*>( &(*grabber)) !=NULL);
-	this->renderers_[current_renderer_idx_]->setup(grabber_);
 
 	this->ui_.button_play_pause->setEnabled(true);
 	this->ui_.button_record->setEnabled(true);
@@ -92,13 +77,39 @@ void pcl::visualization::CloudPlayerWidget::setGrabber(
 	else disablePlayback();
 }
 
+void pcl::visualization::CloudPlayerWidget::enableRenderering() {
+	if (grabber_==NULL) return;
+	if (!this->renderers_[current_renderer_idx_]->setup(grabber_)){
+		std::string emsg = "Current Coloring \"" + this->renderers_[current_renderer_idx_]->description();
+		emsg = emsg + "\" not valid for " + grabber_->getName() +" using Z Range coloring instead\n";
+		error_msg_->showMessage(emsg.c_str());
+		std::cout << "error\n";
+		current_renderer_idx_ =2;
+		this->renderers_[current_renderer_idx_]->setup(grabber_);
+	}
+}
+
+
 void pcl::visualization::CloudPlayerWidget::addCloudRenderer(
 		CloudRenderer* renderer) {
 	renderer->init(ui_.qvtkwidget, pcl_visualizer_);
 	renderers_.push_back(renderer);
-	//todo update menu list
+
+	QAction* render_action= new QAction(renderer->description().c_str(), NULL);
+	connect(render_action, SIGNAL(triggered()), this, SLOT(rendererSelectedViaMenu()) );
+	this->ui_.button_play_pause->menu()->addAction(render_action);
 }
 
+void pcl::visualization::CloudPlayerWidget::rendererSelectedViaMenu() {
+	for(int i=0; i< ui_.button_play_pause->menu()->actions().size(); i++){
+		if (sender() == ui_.button_play_pause->menu()->actions()[i]){
+			setCurrentRenderer(i);
+			break;
+		}
+	}
+
+	if (playing_) enableRenderering();
+}
 
 
 void pcl::visualization::CloudPlayerWidget::playPause( ) {
@@ -108,6 +119,8 @@ void pcl::visualization::CloudPlayerWidget::playPause( ) {
 		grabber_->stop();
 	}
 	else{
+		setCurrentRenderer(current_renderer_idx_);
+		enableRenderering();
 		this->ui_.button_play_pause->setIcon(QIcon (":/viewer/imgs/pause.png"));
 		playing_ = true;
 		grabber_->start();
@@ -201,7 +214,7 @@ pcl::visualization::CloudRenderer* pcl::visualization::CloudPlayerWidget::getRen
 	return renderers_[idx];
 }
 
-void pcl::visualization::CloudPlayerWidget::setRenderer(int idx) {
+void pcl::visualization::CloudPlayerWidget::setCurrentRenderer(int idx) {
 	if ( (idx >=renderers_.size()) || (idx<0) ) return;
 	this->renderers_[current_renderer_idx_]->disconnect();
 	disconnect(this->renderers_[current_renderer_idx_], SIGNAL(update()), this, SLOT(updateCloud()));
@@ -225,10 +238,6 @@ void pcl::visualization::CloudPlayerWidget::setCurrentRecorder(uint32_t idx) {
 	current_recorder_idx_=idx;
 }
 
-void pcl::visualization::CloudPlayerWidget::setCurrentRenderer(uint32_t idx) {
-	if (renderers_.size()<= idx) return;
-	current_renderer_idx_=idx;
-}
 
 void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, size_t frame_total) {
 	MovieGrabber* mg = dynamic_cast<MovieGrabber*>( &(*grabber_));
@@ -237,54 +246,3 @@ void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num, siz
 	this->ui_.progress_bar->setValue(frame_num);
 }
 
-
-#include <pcl/visualization/point_cloud_handlers.h>
-
-pcl::visualization::CloudRendererRange::CloudRendererRange(std::string field) :
-	valid_grabber_(false), field_name_(field){
-	description_= "Color by ";
-	description_ = description_+field + " field";
-}
-
-bool pcl::visualization::CloudRendererRange::setup(
-		boost::shared_ptr<Grabber>& grabber) {
-
-	valid_grabber_ =false;
-	typedef void (sig_cb) ( const sensor_msgs::PointCloud2::ConstPtr&);
-
-	if ( !grabber->providesCallback<sig_cb>() ) return  false;
-
-	valid_grabber_=true;
-	connection_ = this->connection_ = grabber->registerCallback<sig_cb>(
-				boost::bind(&CloudRendererRange::grabberCB, this, _1));
-	return true;
-}
-
-void pcl::visualization::CloudRendererRange::disconnect(){
-	connection_.disconnect();
-	valid_grabber_=false;
-	cloud_.reset();
-}
-void pcl::visualization::CloudRendererRange::renderNew() {
-	if(!valid_grabber_) return;
-	boost::unique_lock<boost::mutex> lock( cloud_mutex_);
-	if (cloud_==NULL) return;
-	pcl::visualization::PointCloudColorHandlerGenericField<sensor_msgs::PointCloud2>::Ptr chand(
-			new pcl::visualization::PointCloudColorHandlerGenericField<sensor_msgs::PointCloud2> (cloud_,field_name_) );
-
-	Eigen::Vector4f origin(0,0,0,1);
-	Eigen::Quaternionf rot = Eigen::Quaternionf::Identity();
-	this->visualizer_->removeAllPointClouds();
-	this->visualizer_->addPointCloud(cloud_,chand, origin, rot);
-	widget_->update();
-	cloud_.reset();
-}
-
-void pcl::visualization::CloudRendererRange::grabberCB(
-		const sensor_msgs::PointCloud2::ConstPtr& cloud) {
-	{
-		boost::unique_lock<boost::mutex> lock( cloud_mutex_);
-		cloud_ = cloud;
-	}
-	emit update();
-}

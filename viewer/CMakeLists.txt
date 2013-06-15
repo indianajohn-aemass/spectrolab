@@ -17,9 +17,11 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
 SET(viewer_SOURCES src/main.cpp
 				   src/cloud_player_widget.cpp
 				   src/viewer_application.cpp
-				   src/spectroscan_settings_widget.cpp)
+				   src/spectroscan_settings_widget.cpp
+				   src/cloud_renderer.cpp)
 
 SET(viewer_HEADERS include/pcl/visualization/cloud_player_widget.h
+				   include/pcl/visualization/cloud_renderer.h
 				   src/viewer_application.h
 				   src/spectroscan_settings_widget.h
 				   )

@@ -13,55 +13,13 @@
 #include <pcl/io/recorder.h>
 
 #include <pcl/visualization/pcl_visualizer.h>
-
+#include "cloud_renderer.h"
 #include <QWidget>
 
 class QErrorMessage;
 
 namespace pcl {
 namespace visualization{
-
-class CloudRenderer  : public QObject{
-	Q_OBJECT
-	protected:
-		std::string description_;
-		QVTKWidget* widget_;
-		pcl::visualization::PCLVisualizer* visualizer_;
-		boost::signals2::connection connection_;
-	public:
-		CloudRenderer( ): widget_(NULL), visualizer_(NULL){}
-		virtual ~CloudRenderer(){}
-
-		virtual void init(QVTKWidget* widget, PCLVisualizer * visualizer){
-			widget_=widget;
-			visualizer_=visualizer;
-		}
-		virtual bool setup(boost::shared_ptr<Grabber>& grabber)=0;
-		virtual void disconnect()=0;
-
-		virtual void renderNew()=0;
-		std::string description(){return description_;};
-
-	signals:
-		void update();
-};
-
-class CloudRendererRange  : public CloudRenderer{
-	public:
-		CloudRendererRange(std::string field);
-		virtual ~CloudRendererRange(){}
-		virtual bool setup(boost::shared_ptr<Grabber>& grabber);
-		virtual void disconnect();
-		virtual void renderNew();
-	private:
-		std::string field_name_;
-		boost::mutex cloud_mutex_;
-		sensor_msgs::PointCloud2::ConstPtr cloud_;
-		bool valid_grabber_;
-		void grabberCB( const sensor_msgs::PointCloud2::ConstPtr& cloud);
-		boost::signals2::connection connection_;
-};
-
 
 class CloudPlayerWidget : public QWidget{
 	Q_OBJECT
@@ -73,10 +31,11 @@ class CloudPlayerWidget : public QWidget{
 		void setGrabber(boost::shared_ptr<Grabber>& grabber);
 
 		void addCloudRenderer(CloudRenderer* renderer);
-		uint32_t  currentRendererIDX(){return current_renderer_idx_;}
-		void setCurrentRenderer(uint32_t idx);
-		CloudRenderer* getRenderer(size_t idx);
 		size_t getNumRenderers(){return renderers_.size();}
+
+		uint32_t  currentRendererIDX(){return current_renderer_idx_;}
+		CloudRenderer* getRenderer(size_t idx);
+		void setCurrentRenderer(int idx);
 
 
 		void addRecorder(Recorder* recorder);
@@ -105,9 +64,9 @@ class CloudPlayerWidget : public QWidget{
 		void playPause( );
 		void sliderValueChanged(int val);
 		void record( );
+
 		void resetView( );
-		virtual  void updateCloud();
-		void setRenderer(int idx);
+		void updateCloud();
 	protected :
 		void keyCB(const pcl::visualization::KeyboardEvent& e);
 		void enablePlayback();
@@ -115,8 +74,12 @@ class CloudPlayerWidget : public QWidget{
 		void progressUpdate(size_t frame_num, size_t frame_total);
 		void startRecording();
 		void stopRecording();
-	};
-}
+		void enableRenderering();
 
-} /* namespace adaptive_pushgrasp */
+	protected slots:
+		void rendererSelectedViaMenu();
+};
+
+	}/* namespace visualization */
+} /* namespace pcl */
 #endif /* CLOUD_PLAYER_WIDGET_H_ */
