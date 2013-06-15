@@ -60,7 +60,7 @@ float pcl::MovieGrabber::getFramesPerSecond() const {
 
 void pcl::MovieGrabber::setFramesPerSecond(float frame_rate) {
 	frame_rate_ = frame_rate;
-	sleep_ms_ = 1/frame_rate*1000;
+	sleep_ms_ = 1.0f/frame_rate*1000;
 }
 
 size_t pcl::MovieGrabber::getFrameCount() {

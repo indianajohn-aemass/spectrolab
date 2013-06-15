@@ -77,7 +77,7 @@ void SpectolabViewer::loadMovie() {
 	if (frame_path.extension()==".pcd"){
 		mg = new pcl::MovieGrabber( frame_path.parent_path(), frame_path.extension().string() );
 	}
-	else if (frame_path.extension()==".ssimg"){
+	else if (frame_path.extension()==".ssi"){
 		mg = new pcl::Spectroscan3DMovieGrabber( frame_path.parent_path(),true );
 	}
 	else{
@@ -91,6 +91,7 @@ void SpectolabViewer::loadMovie() {
 	mg->setFramesPerSecond(frame_rate_);
 	grabber_.reset(mg);
 	this->cplayer_->setGrabber(grabber_);
+	this->cplayer_->playPause();
 }
 
 void SpectolabViewer::loadScan() {
@@ -130,6 +131,7 @@ void SpectolabViewer::spectroscan3dConnect(){
 		grabber_.reset(new pcl::Spectroscan3DGrabber);
 		dynamic_cast<pcl::Spectroscan3DGrabber*>( grabber_.get())->setSettings(spectroscan_settings_);
 		cplayer_->setGrabber(grabber_);
+		this->cplayer_->playPause();
 		QString msg="Opened connection to Spectroscan 3D ";
 		ui_.statusbar->showMessage(msg,15000);
 	}

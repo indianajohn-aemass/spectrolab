@@ -13,6 +13,7 @@
 
 #include <pcl/console/print.h>
 #include <pcl/ros/conversions.h>
+#include <pcl/common/io.h>
 #include <pcl/exceptions.h>
 
 
@@ -114,6 +115,11 @@ void print_debug_output( const std::string& str){
 	pcl::console::print_debug("%s", str.c_str());
 }
 
+void passthrough_filter( const boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >& in,
+						       boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >& out){
+	out=in;
+}
+
 pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) {
 
 	camera_.setDebugOutput(print_debug_output);
@@ -124,6 +130,8 @@ pcl::Spectroscan3DGrabber::Spectroscan3DGrabber(std::string ipaddress) {
 	xyzi_cb_ = this->createSignal<sig_cb_xyzi_cloud>();
 	img_cb_ = this->createSignal<spectrolab::SpectroScan3D::sig_camera_cb>();
 	xyz_cb_ = this->createSignal<sig_cb_xyz_cloud>();
+	cloud_cb_ = this->createSignal<sig_cb_cloud>();
+	filter_= passthrough_filter;
  }
 
 
@@ -141,31 +149,42 @@ void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan, 
 	if (!img_cb_->empty()){
 		(*img_cb_)(scan, scan_time);
 	}
+	PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
+	PointCloud<pcl::PointXYZI>::Ptr filtered_xyzi(new pcl::PointCloud<pcl::PointXYZI>);
+
+	rangeImageToCloud(*scan, *xyzi, settings_);
+
+	for(size_t r=0, idx=0; r< scan->rows(); r++){
+		for(size_t c=0; c< scan->cols(); c++,idx++){
+			float amp = ((float) (*scan)[idx].amplitude);
+			(*xyzi)[idx].intensity= amp/1024.0f;
+		}
+	}
+	(*xyzi).at(0,scan->rows()-1).intensity=0;
+	(*xyzi).at(1,scan->rows()-1).intensity=0;
+
+	filter_(xyzi, filtered_xyzi);
+
+	if (!xyzi_cb_->empty()){
+		(*xyzi_cb_)(filtered_xyzi);
+	}
 	if (!xyz_cb_->empty()){
 		PointCloud<pcl::PointXYZ>::Ptr xyz(new pcl::PointCloud<pcl::PointXYZ>);
-		rangeImageToCloud(*scan, *xyz, settings_);
+		pcl::copyPointCloud(*filtered_xyzi, *xyz);
 		(*xyz_cb_)(xyz);
 	}
-	if (!xyzi_cb_->empty()){
-		PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
-		rangeImageToCloud(*scan, *xyzi, settings_);
-
-		for(size_t r=0, idx=0; r< scan->rows(); r++){
-			for(size_t c=0; c< scan->cols(); c++,idx++){
-				float amp = ((float) (*scan)[idx].amplitude);
-				(*xyzi)[idx].intensity= amp/1024.0f;
-			}
-		}
-		(*xyzi).at(0,scan->rows()-1).intensity=0;
-		(*xyzi).at(1,scan->rows()-1).intensity=0;
-		(*xyzi_cb_)(xyzi);
+	if (!cloud_cb_->empty()){
+		sensor_msgs::PointCloud2Ptr cloud(new sensor_msgs::PointCloud2);
+		pcl::toROSMsg(*filtered_xyzi, *cloud);
+		(*cloud_cb_)(cloud);
 	}
 }
 
 void pcl::Spectroscan3DGrabber::signalsChanged() {
+	cloud_cb_ = this->find_signal<sig_cb_cloud>();
+	xyz_cb_ = this->find_signal<sig_cb_xyz_cloud>();
 	xyzi_cb_ = this->find_signal<sig_cb_xyzi_cloud>();
 	img_cb_ = this->find_signal<spectrolab::SpectroScan3D::sig_camera_cb>();
-	xyz_cb_ = this->find_signal<sig_cb_xyz_cloud>();
 }
 
 pcl::Spectroscan3DMovieGrabber::Spectroscan3DMovieGrabber(
@@ -209,7 +228,7 @@ pcl::Spectroscan3DRecorder::Spectroscan3DRecorder() :
 }
 
 bool pcl::Spectroscan3DRecorder::setGrabber( const boost::shared_ptr<Grabber>& grabber) {
-	valid_grabber_ =  grabber_->providesCallback<spectrolab::SpectroScan3D::sig_camera_cb>();
+	valid_grabber_ =  grabber->providesCallback<spectrolab::SpectroScan3D::sig_camera_cb>();
 	grabber_ = grabber;
 	return valid_grabber_;
 }

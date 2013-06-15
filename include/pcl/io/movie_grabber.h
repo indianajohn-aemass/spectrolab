@@ -28,7 +28,10 @@ class PCL_EXPORTS MovieGrabber : public Grabber{
 public:
 	MovieGrabber( const boost::filesystem::path move_folder, std::string ext=".pcd");
 
-	virtual ~MovieGrabber() throw(){}
+	virtual ~MovieGrabber() throw(){
+		if (running_) stop();
+		io_thread_.join();
+	}
 
 	typedef boost::shared_ptr<MovieGrabber> Ptr;
 

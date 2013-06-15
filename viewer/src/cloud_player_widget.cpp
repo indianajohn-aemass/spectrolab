@@ -66,9 +66,16 @@ pcl::visualization::CloudPlayerWidget::~CloudPlayerWidget() {
 
 void pcl::visualization::CloudPlayerWidget::setGrabber(
 		boost::shared_ptr<Grabber>& grabber) {
+	assert(grabber!=NULL);
+	if (playing_) playPause(); //pause the playing
 
 	this->grabber_ = grabber;
 	is_movie_grabber_  =  (dynamic_cast<MovieGrabber*>( &(*grabber)) !=NULL);
+
+
+	cache_connection_.disconnect();
+	typedef void (sig_cb_cloud) (const boost::shared_ptr<const sensor_msgs::PointCloud2>&);
+	cache_connection_= grabber->registerCallback<sig_cb_cloud>(boost::bind(&CloudPlayerWidget::cacheCloud,this, _1));
 
 	this->ui_.button_play_pause->setEnabled(true);
 	this->ui_.button_record->setEnabled(true);
@@ -100,6 +107,11 @@ void pcl::visualization::CloudPlayerWidget::addCloudRenderer(
 	this->ui_.button_play_pause->menu()->addAction(render_action);
 }
 
+void pcl::visualization::CloudPlayerWidget::cacheCloud(
+		const sensor_msgs::PointCloud2ConstPtr& cloud) {
+	cached_cloud_= cloud;
+}
+
 void pcl::visualization::CloudPlayerWidget::rendererSelectedViaMenu() {
 	for(int i=0; i< ui_.button_play_pause->menu()->actions().size(); i++){
 		if (sender() == ui_.button_play_pause->menu()->actions()[i]){
@@ -109,10 +121,16 @@ void pcl::visualization::CloudPlayerWidget::rendererSelectedViaMenu() {
 	}
 
 	if (playing_) enableRenderering();
+	else if (cached_cloud_!=NULL){
+		renderers_[current_renderer_idx_]->setCloud(cached_cloud_);
+		renderers_[current_renderer_idx_]->renderNew();
+	}
 }
 
 
 void pcl::visualization::CloudPlayerWidget::playPause( ) {
+	assert(grabber_!=NULL);
+
 	if (playing_){ //now pause
 		this->ui_.button_play_pause->setIcon( QIcon (":/viewer/imgs/play.png"));
 		playing_ = false;
@@ -186,11 +204,13 @@ void pcl::visualization::CloudPlayerWidget::enablePlayback() {
 	this->ui_.progress_bar->setMaximum(mg->getFrameCount()-1);
 	progress_connection_ = this->grabber_->registerCallback<MovieGrabber::sig_frame_num_cb>(
 			boost::bind(&CloudPlayerWidget::progressUpdate, this , _1, _2));
+	this->ui_.progress_bar->setValue(0);
 }
 
 void pcl::visualization::CloudPlayerWidget::disablePlayback() {
 	this->ui_.progress_bar->setEnabled(false);
 	progress_connection_.disconnect();
+	this->ui_.progress_bar->setValue(0);
 }
 
 void pcl::visualization::CloudPlayerWidget::keyCB(

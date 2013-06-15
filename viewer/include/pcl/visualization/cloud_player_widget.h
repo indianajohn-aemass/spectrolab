@@ -60,6 +60,10 @@ class CloudPlayerWidget : public QWidget{
 
 		QErrorMessage* error_msg_;
 
+		void cacheCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+		sensor_msgs::PointCloud2ConstPtr  cached_cloud_;
+		boost::signals2::connection cache_connection_;
+
 	public slots:
 		void playPause( );
 		void sliderValueChanged(int val);
@@ -75,6 +79,7 @@ class CloudPlayerWidget : public QWidget{
 		void startRecording();
 		void stopRecording();
 		void enableRenderering();
+
 
 	protected slots:
 		void rendererSelectedViaMenu();

@@ -38,6 +38,8 @@ namespace pcl{
 			virtual bool setup(boost::shared_ptr<Grabber>& grabber)=0;
 			virtual void disconnect()=0;
 
+			virtual void setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud)=0;
+
 			virtual void renderNew()=0;
 			std::string description(){return description_;};
 
@@ -52,6 +54,10 @@ namespace pcl{
 			virtual bool setup(boost::shared_ptr<Grabber>& grabber);
 			virtual void disconnect();
 			virtual void renderNew();
+			void setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud){
+				cloud_=cloud;
+			}
+
 		private:
 			std::string field_name_;
 			boost::mutex cloud_mutex_;
@@ -69,6 +75,7 @@ namespace pcl{
 		virtual bool setup(boost::shared_ptr<Grabber>& grabber);
 		virtual void disconnect();
 		virtual void renderNew();
+		void setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
 	private:
 		boost::mutex cloud_mutex_;
 		pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;

@@ -79,6 +79,7 @@
 		virtual ~Spectroscan3DGrabber() throw(){}
 
 		//define callback signature typedefs
+		typedef void (sig_cb_cloud) (const boost::shared_ptr<const sensor_msgs::PointCloud2>&);
 		typedef void (sig_cb_xyz_cloud) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZ> >&);
 		typedef void (sig_cb_xyzi_cloud) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZI> >&);
 
@@ -114,13 +115,25 @@
 			settings_=settings;
 		}
 
+		/*
+		 * Spectrolab requested hook for performing filtering on the
+		 * PointCloud before it is broadcasted to all registered callbacks
+		 */
+		typedef void (FilterFunctT) (const boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >&,
+										   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >&);
+		void setFilter( const FilterFunctT& funct){filter_=funct;}
+
 	private:
 		spectrolab::SpectroScan3D camera_;
 		SpectroscanSettings settings_;
 
+		boost::function< FilterFunctT> filter_;
+
+
 		boost::signals2::signal<spectrolab::SpectroScan3D::sig_camera_cb>* img_cb_;
 		boost::signals2::signal<sig_cb_xyz_cloud>* xyz_cb_;
 		boost::signals2::signal<sig_cb_xyzi_cloud>* xyzi_cb_;
+		boost::signals2::signal<sig_cb_cloud>* cloud_cb_;
 
 		void frameCB(const spectrolab::Scan::ConstPtr& scan, time_t scan_time );
 

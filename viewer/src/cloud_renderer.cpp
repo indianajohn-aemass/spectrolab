@@ -111,4 +111,9 @@ void pcl::visualization::CloudRendererBW::grabberCB(
 	emit update();
 }
 
-
+void pcl::visualization::CloudRendererBW::setCloud(
+		const sensor_msgs::PointCloud2ConstPtr& cloud) {
+	pcl::PointCloud<pcl::PointXYZI>::Ptr tcloud(new pcl::PointCloud<pcl::PointXYZI>);
+	pcl::fromROSMsg(*cloud, *tcloud);
+	cloud_=tcloud;
+}
