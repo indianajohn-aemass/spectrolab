@@ -271,7 +271,7 @@ void spectrolab::SpectroScan3D::frameRateCB() {
 }
 
 void spectrolab::Scan::save(std::string fname) const {
-	std::ofstream ofile(fname.c_str());
+	std::ofstream ofile(fname.c_str(), std::ios::binary);
 	//ofile.write( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
 
 	for( int r=this->rows_-1; r>=0 ; r--){
@@ -292,7 +292,7 @@ void spectrolab::Scan::save(std::string fname) const {
 
 bool spectrolab::Scan::load(std::string fname) {
 
-	std::ifstream ifile(fname.c_str());
+	std::ifstream ifile(fname.c_str(), std::ios::binary);
 	if (!ifile.is_open()) return false;
 
 	for( int r=this->rows_-1; r>=0 ; r--){

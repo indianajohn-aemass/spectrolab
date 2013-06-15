@@ -8,7 +8,7 @@
 #ifndef _PCL_BW_COLOR_HANDLER_H_
 #define _PCL_BW_COLOR_HANDLER_H_
 
-#include <pcl/visualization/point_cloud_color_handlers.h>
+#include <pcl/visualization/point_cloud_handlers.h>
 
 namespace pcl{
  namespace visualization{
@@ -25,7 +25,7 @@ namespace pcl{
          typedef boost::shared_ptr<const PointCloudColorHandler<PointT> > ConstPtr;
 
          /** \brief Constructor. */
-         PointCloudIntensityHandler (const PointCloudConstPtr &cloud) : PointCloudColorHandler<PointT>()
+         PointCloudIntensityHandler (const PointCloudConstPtr &cloud) : PointCloudColorHandler<PointT>(cloud)
          {
         	 capable_=true;
         	 cloud_=cloud;
@@ -46,11 +46,17 @@ namespace pcl{
            * \return true if the operation was successful (the handler is capable and
            * the input cloud was given as a valid pointer), false otherwise
            */
-         virtual bool
+ #if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
+	virtual bool
          getColor (vtkSmartPointer<vtkDataArray> &scalars) const {
-        	  if (!capable_ || !cloud_)
+			 if (!capable_ || !cloud_)
         	    return (false);
-
+#else
+	virtual void
+         getColor (vtkSmartPointer<vtkDataArray> &scalars) const {
+			 if (!capable_ || !cloud_)
+        	    return ;
+#endif
         	  if (!scalars)
         	    scalars = vtkSmartPointer<vtkUnsignedCharArray>::New ();
         	  scalars->SetNumberOfComponents (3);
@@ -71,7 +77,11 @@ namespace pcl{
         	    colors[cp * 3 + 2] = val;
         	  }
         	  reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray (colors, 3 * nr_points, 0);
-        	 return capable_;
+ 
+
+#if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
+        	    return true;
+#endif
          }
 
          /** \brief Set the input cloud to be used.

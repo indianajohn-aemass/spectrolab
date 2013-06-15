@@ -24,7 +24,7 @@ protected:
 	boost::shared_ptr<Grabber> grabber_;
 	boost::signals2::connection connection_;
 	bool valid_grabber_;
-	void cloudCB(const typename sensor_msgs::PointCloud2ConstPtr& cloud);
+	void cloudCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
 };
 
 }

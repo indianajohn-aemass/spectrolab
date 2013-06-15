@@ -70,7 +70,7 @@ void SpectolabViewer::loadMovie() {
 	                                                 tr("Files (*.pcd  Frame* *.ssi)"));
 	if (fileName.size() ==0) return;
 	boost::filesystem::path frame_path = fileName.toAscii().data();
-	QString save_path = frame_path.parent_path().c_str();
+	QString save_path =  (char*)  frame_path.parent_path().c_str();
 	settings_.setValue("data_path", save_path);
 
 	pcl::MovieGrabber* mg;
@@ -101,7 +101,7 @@ void SpectolabViewer::loadScan() {
 	if (fileName.size() ==0) return;
 	boost::filesystem::path frame_path = fileName.toAscii().data();
 
-	QString save_path = frame_path.parent_path().c_str();
+	QString save_path = (char*) frame_path.parent_path().c_str();
 	settings_.setValue("data_path", save_path);
 
 	if (frame_path.extension()==".pcd"){

@@ -15,6 +15,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include<pcl/point_types.h>
+#include <boost/thread.hpp>
 
 namespace pcl{
 
