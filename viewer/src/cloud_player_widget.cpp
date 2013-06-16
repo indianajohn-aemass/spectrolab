@@ -91,7 +91,7 @@ void pcl::visualization::CloudPlayerWidget::enableRenderering() {
 		std::string emsg = "Current Coloring \"" + this->renderers_[current_renderer_idx_]->description();
 		emsg = emsg + "\" not valid for " + grabber_->getName() +" using Z Range coloring instead\n";
 		error_msg_->showMessage(emsg.c_str());
-		std::cout << "error\n";
+		error_msg_->show();
 		current_renderer_idx_ =2;
 		this->renderers_[current_renderer_idx_]->setup(grabber_);
 	}
