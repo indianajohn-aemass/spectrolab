@@ -107,8 +107,11 @@ void SpectolabViewer::loadScan() {
 	if (frame_path.extension()==".pcd"){
 		grabber_.reset(new pcl::MovieGrabber( frame_path.string(), frame_path.extension().string() ) );
 	}
-	else{
-		grabber_.reset(new pcl::Spectroscan3DMovieGrabber( frame_path.string()) );
+	else if (frame_path.extension()==".ssi"){ //load new file format
+		grabber_.reset(new pcl::Spectroscan3DMovieGrabber( frame_path.string(), true) );
+	}
+	else{ //load original frame that has no extension
+		grabber_.reset(new pcl::Spectroscan3DMovieGrabber( frame_path.string(), false) );
 	}
 	this->cplayer_->setGrabber(grabber_);
 	this->cplayer_->playPause();

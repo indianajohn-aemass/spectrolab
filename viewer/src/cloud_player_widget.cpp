@@ -39,6 +39,7 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
   ui_.qvtkwidget->update ();
   ui_.qvtkwidget->GetInteractor()->RemoveObservers(vtkCommand::ExitEvent);
 
+  pcl_visualizer_->registerKeyboardCallback(boost::bind(&CloudPlayerWidget::keyboardCB, this,_1));
 
   addCloudRenderer(new CloudRendererRange("x"));
   addCloudRenderer(new CloudRendererRange("y"));
@@ -48,13 +49,13 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent, Qt::Wi
 		  	  this, SLOT(playPause()) );
   QObject::connect(ui_.button_record, SIGNAL(clicked()),
 		  	  this, SLOT(record()) );
+  QObject::connect(ui_.button_home, SIGNAL(clicked()),
+		  	  this, SLOT(resetView()) );
 
   this->setWindowTitle("Cloud Player");
 
   this->addRecorder( new PCDRecorder());
 
-
-  this->pcl_visualizer_->registerKeyboardCallback(boost::bind(&CloudPlayerWidget::keyCB, this, _1));
   resetView();
  }
 
@@ -112,6 +113,11 @@ void pcl::visualization::CloudPlayerWidget::cacheCloud(
 	cached_cloud_= cloud;
 }
 
+void pcl::visualization::CloudPlayerWidget::keyboardCB(
+		const pcl::visualization::KeyboardEvent& event) {
+
+}
+
 void pcl::visualization::CloudPlayerWidget::rendererSelectedViaMenu() {
 	for(int i=0; i< ui_.button_play_pause->menu()->actions().size(); i++){
 		if (sender() == ui_.button_play_pause->menu()->actions()[i]){
@@ -120,10 +126,11 @@ void pcl::visualization::CloudPlayerWidget::rendererSelectedViaMenu() {
 		}
 	}
 
-	if (playing_) enableRenderering();
-	else if (cached_cloud_!=NULL){
+	enableRenderering();
+	if (cached_cloud_!=NULL){
 		renderers_[current_renderer_idx_]->setCloud(cached_cloud_);
 		renderers_[current_renderer_idx_]->renderNew();
+		this->update();
 	}
 }
 
@@ -195,6 +202,8 @@ void pcl::visualization::CloudPlayerWidget::resetView( ) {
     					   0, 0, 1,
     					  0,-1,0);
 #endif
+	this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->ResetCameraClippingRange ();
+	this->ui_.qvtkwidget->GetRenderWindow()->Render();
 }
 
 void pcl::visualization::CloudPlayerWidget::enablePlayback() {
@@ -211,11 +220,6 @@ void pcl::visualization::CloudPlayerWidget::disablePlayback() {
 	this->ui_.progress_bar->setEnabled(false);
 	progress_connection_.disconnect();
 	this->ui_.progress_bar->setValue(0);
-}
-
-void pcl::visualization::CloudPlayerWidget::keyCB(
-		const pcl::visualization::KeyboardEvent& e) {
-
 }
 
 void pcl::visualization::CloudPlayerWidget::sliderValueChanged(int val) {

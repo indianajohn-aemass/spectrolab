@@ -62,8 +62,7 @@
 		void save(std::string ofname);
 	};
 
-	template<typename PointT>
-	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
+	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<pcl::PointXYZI>& cloud,
 							const SpectroscanSettings& settings);
 
 	/*

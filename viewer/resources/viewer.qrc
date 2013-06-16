@@ -1,10 +1,11 @@
 <RCC>
-  <qresource prefix="viewer">
-    <file>imgs/play.png</file>
-    <file>imgs/pause.png</file>
-    <file>imgs/previous.png</file>
-    <file>imgs/next.png</file>
-    <file>imgs/recorddisabled.png</file>
-    <file>imgs/recordpressed.png</file>
-  </qresource>
+    <qresource prefix="/viewer">
+        <file>imgs/play.png</file>
+        <file>imgs/pause.png</file>
+        <file>imgs/previous.png</file>
+        <file>imgs/next.png</file>
+        <file>imgs/recorddisabled.png</file>
+        <file>imgs/recordpressed.png</file>
+        <file>imgs/home.png</file>
+    </qresource>
 </RCC>

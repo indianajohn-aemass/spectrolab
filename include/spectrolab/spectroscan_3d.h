@@ -64,8 +64,8 @@ namespace spectrolab{
 				uint16_t amplitude;
 			};
 		private:
-			size_t rows_;
-			size_t columns_;
+			uint16_t rows_;
+			uint16_t columns_;
 
 			size_t calcAddress(uint32_t row, uint32_t column) const {
 				return row*columns_+column;
@@ -221,8 +221,6 @@ namespace spectrolab{
 		float getFrameRate() const {return frame_rate_;}
 
 
-		static const uint32_t IMG_WIDTH; //range image width
-		static const uint32_t IMG_HEIGHT; //range image height
 
 		void setDebugOutput( const boost::function<void (const std::string&)>& funct){
 			print_debug= funct;
@@ -230,11 +228,11 @@ namespace spectrolab{
 
 	private:
 
+		friend class Scan;
+
 		boost::function<void (const std::string&)> print_debug;
 
 		boost::signals2::signal<sig_camera_cb> frame_cb_;
-
-
 		/*
 		 * send
 		 * Send a command to the scanner and wait for a response
@@ -278,6 +276,9 @@ namespace spectrolab{
 		static const uint16_t IMG_FRAME_DELIMITER_1; //Image frame delimiter byte 1
 		static const uint16_t IMG_FRAME_DELIMITER_2; //Image frame delimiter byte 2
 
+
+		static const uint32_t DEFAULT_IMG_WIDTH; //range image width
+		static const uint32_t DEFAULT_IMG_HEIGHT; //range image height
 
 
 		void runIO();

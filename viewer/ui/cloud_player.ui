@@ -45,6 +45,26 @@
       <enum>QLayout::SetNoConstraint</enum>
      </property>
      <item>
+      <widget class="QToolButton" name="button_home">
+       <property name="toolTip">
+        <string>Reset the viewer camera to the home position.</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/viewer.qrc">
+         <normaloff>:/viewer/imgs/home.png</normaloff>:/viewer/imgs/home.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolButton" name="button_play_pause">
        <property name="enabled">
         <bool>false</bool>
@@ -62,7 +82,10 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Play Button</string>
+        <string>Play/Pause Point Cloud Stream</string>
+       </property>
+       <property name="statusTip">
+        <string/>
        </property>
        <property name="text">
         <string>...</string>
@@ -83,6 +106,15 @@
       <widget class="QToolButton" name="button_record">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Record Point Cloud Stream</string>
+       </property>
+       <property name="statusTip">
+        <string/>
+       </property>
+       <property name="whatsThis">
+        <string/>
        </property>
        <property name="text">
         <string>...</string>

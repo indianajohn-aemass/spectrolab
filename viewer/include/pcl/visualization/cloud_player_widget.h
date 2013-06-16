@@ -47,6 +47,8 @@ class CloudPlayerWidget : public QWidget{
 		bool is_movie_grabber_;
 		PCLVisualizer* pcl_visualizer_;
 
+		void keyboardCB(const pcl::visualization::KeyboardEvent& event);
+
 		Ui_CloudPlayer ui_;
 		std::vector<CloudRenderer*> renderers_;
 		std::vector<Recorder*> recorders_;
@@ -72,7 +74,6 @@ class CloudPlayerWidget : public QWidget{
 		void resetView( );
 		void updateCloud();
 	protected :
-		void keyCB(const pcl::visualization::KeyboardEvent& e);
 		void enablePlayback();
 		void disablePlayback();
 		void progressUpdate(size_t frame_num, size_t frame_total);

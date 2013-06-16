@@ -21,8 +21,8 @@ const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_1=0xba98;
 const uint16_t spectrolab::SpectroScan3D::IMG_FRAME_DELIMITER_2=0xfedc;
 
 
-const uint32_t spectrolab::SpectroScan3D::IMG_HEIGHT=128;
-const uint32_t spectrolab::SpectroScan3D::IMG_WIDTH=256;
+const uint32_t spectrolab::SpectroScan3D::DEFAULT_IMG_HEIGHT=128;
+const uint32_t spectrolab::SpectroScan3D::DEFAULT_IMG_WIDTH=256;
 
 namespace ba=boost::asio;
 using std::string;
@@ -32,9 +32,9 @@ void print_debug_cout(const std::string& str);
  spectrolab::SpectroScan3D::SpectroScan3D() :
 		 io_service_(), io_worker_(io_service_),
 		 cmd_timed_out_(false), cmd_response_recieved_(false), cmd_response_(0),
-		 line_num_(IMG_HEIGHT-1), running_(false),
+		 line_num_(DEFAULT_IMG_HEIGHT-1), running_(false),
 		 frame_rate_(4), frames_in_last_second_(0),  frame_rate_timer_(io_service_),
-		 current_scan_(new Scan(IMG_HEIGHT,IMG_WIDTH)),img_buffer_(1024)
+		 current_scan_(new Scan(DEFAULT_IMG_HEIGHT,DEFAULT_IMG_WIDTH)),img_buffer_(1024)
 		 {
  }
 
@@ -236,7 +236,7 @@ void spectrolab::SpectroScan3D::processLines() {
 		if ( (pixels[0] ==  IMG_FRAME_DELIMITER_1) &&
 			 (pixels[1] ==  IMG_FRAME_DELIMITER_2)){
 		//	std::cout << "Starting new image frame " <<pixels[2] << "  " << pixels[3] << "  \n";
-			line_num_=IMG_HEIGHT-1;
+			line_num_=DEFAULT_IMG_HEIGHT-1;
 		}
 
 		if (line_num_%2==0){ //laser went from right to left
@@ -254,12 +254,12 @@ void spectrolab::SpectroScan3D::processLines() {
 		line_queue_.pop();
 		line_num_--;
 		if (line_num_<0){ //check to see if the frame is finished and call cb
-			line_num_=IMG_HEIGHT-1;
+			line_num_=DEFAULT_IMG_HEIGHT-1;
 			frames_in_last_second_++;
 			time_t scan_time;
 			std::time(&scan_time);
 			frame_cb_(current_scan_, scan_time);
-			current_scan_.reset(new Scan(IMG_HEIGHT, IMG_WIDTH))  ;
+			current_scan_.reset(new Scan(DEFAULT_IMG_HEIGHT, DEFAULT_IMG_WIDTH))  ;
 		}
 	}
 }
@@ -272,7 +272,6 @@ void spectrolab::SpectroScan3D::frameRateCB() {
 
 void spectrolab::Scan::save(std::string fname) const {
 	std::ofstream ofile(fname.c_str(), std::ios::binary);
-	//ofile.write( (char*) this->pixel_data_.data(), sizeof(Pixel)*this->pixel_data_.size());
 
 	for( int r=this->rows_-1; r>=0 ; r--){
 		if (r%2==0){ //laser went from right to left
@@ -288,6 +287,11 @@ void spectrolab::Scan::save(std::string fname) const {
 			}
 		}
 	}
+	//add in size information to the file
+	ofile.seekp(0, std::ios::beg);
+	ofile.write((char*) &rows_,2);
+	ofile.write((char*) &columns_,2);
+
 }
 
 bool spectrolab::Scan::load(std::string fname) {
@@ -295,6 +299,20 @@ bool spectrolab::Scan::load(std::string fname) {
 	std::ifstream ifile(fname.c_str(), std::ios::binary);
 	if (!ifile.is_open()) return false;
 
+	ifile.read((char*) &rows_,2);
+	ifile.read((char*) &columns_,2);
+
+	//detect if it was the old file format with no size information
+	//ordering is swapped because of byte swap operation from original spectrolab file implementation
+	if ( (rows_ == SpectroScan3D::IMG_FRAME_DELIMITER_2) &&
+			(columns_ == SpectroScan3D::IMG_FRAME_DELIMITER_1) ){
+		rows_ = SpectroScan3D::DEFAULT_IMG_HEIGHT;
+		columns_ = SpectroScan3D::DEFAULT_IMG_WIDTH;
+	}
+	resize(rows_, columns_);
+	//restart to beginning
+	ifile.seekg(0, std::ios::beg);
+
 	for( int r=this->rows_-1; r>=0 ; r--){
 		if (r%2==0){ //laser went from right to left
 			for(int c=columns_-1; c>=0 ; c--){
@@ -310,6 +328,10 @@ bool spectrolab::Scan::load(std::string fname) {
 		}
 	}
 
+	//to keep the frame format consistent with the communication protocol,
+	//put back the delimeter tags
+	pixel_data_[0].range = SpectroScan3D::IMG_FRAME_DELIMITER_1;
+	pixel_data_[0].amplitude = SpectroScan3D::IMG_FRAME_DELIMITER_2;
 	return true;
 }
 

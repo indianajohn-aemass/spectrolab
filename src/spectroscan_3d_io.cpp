@@ -74,9 +74,8 @@ void pcl::SpectroscanSettings::save(std::string ofname) {
 }
 
 
-template<typename PointT>
 inline void pcl::rangeImageToCloud(
-		const spectrolab::Scan& scan, pcl::PointCloud<PointT>& cloud,
+		const spectrolab::Scan& scan, pcl::PointCloud<pcl::PointXYZI>& cloud,
 		const SpectroscanSettings& settings) {
 
 	cloud.resize(scan.cols()*scan.rows());
@@ -96,6 +95,7 @@ inline void pcl::rangeImageToCloud(
 			range=settings.range_resolution *range + settings.range_offset;
 			if ( (range> settings.max_range) || (range< settings.min_range) ){
 				cloud[idx].x= cloud[idx].y, cloud[idx].z= std::numeric_limits<float>::quiet_NaN();
+				cloud[idx].intensity=0;
 				continue;
 			}
 			cloud[idx].z= range;
@@ -103,12 +103,17 @@ inline void pcl::rangeImageToCloud(
 			cloud[idx].x = sin(dx*settings.x_angle_delta)*range;
 			float dy = r-my;
 			cloud[idx].y = sin(dy*settings.y_angle_delta)*range;
+
+			float amp = ((float) scan[idx].amplitude);
+			cloud[idx].intensity= amp/1024.0f;
 		}
 	}
-	PointT& pt_delimeter = cloud.at(0,scan.rows()-1);
-	PointT& pt_frame_count = cloud.at(1,scan.rows()-1);
+	pcl::PointXYZI& pt_delimeter = cloud.at(0,scan.rows()-1);
+	pcl::PointXYZI& pt_frame_count = cloud.at(1,scan.rows()-1);
 	pt_delimeter.x =pt_delimeter.y = pt_delimeter.z =
 			pt_frame_count.x= pt_frame_count.y, pt_frame_count.z= std::numeric_limits<float>::quiet_NaN();
+	pt_delimeter.intensity=0;
+	pt_frame_count.intensity=0;
 }
 
 void print_debug_output( const std::string& str){
@@ -154,15 +159,6 @@ void pcl::Spectroscan3DGrabber::frameCB(const spectrolab::Scan::ConstPtr& scan, 
 
 	rangeImageToCloud(*scan, *xyzi, settings_);
 
-	for(size_t r=0, idx=0; r< scan->rows(); r++){
-		for(size_t c=0; c< scan->cols(); c++,idx++){
-			float amp = ((float) (*scan)[idx].amplitude);
-			(*xyzi)[idx].intensity= amp/1024.0f;
-		}
-	}
-	(*xyzi).at(0,scan->rows()-1).intensity=0;
-	(*xyzi).at(1,scan->rows()-1).intensity=0;
-
 	filter_(xyzi, filtered_xyzi);
 
 	if (!xyzi_cb_->empty()){
@@ -196,8 +192,7 @@ pcl::Spectroscan3DMovieGrabber::Spectroscan3DMovieGrabber(
 
 void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
 
-	spectrolab::Scan::Ptr scan(new spectrolab::Scan(spectrolab::SpectroScan3D::IMG_HEIGHT,
-													spectrolab::SpectroScan3D::IMG_WIDTH));
+	spectrolab::Scan::Ptr scan(new spectrolab::Scan() );
 	if (!scan->load(file)){
 		pcl::console::print_error("[Spectroscan3DMovieGrabber] Cannot read %s", file.c_str());
 		return;
@@ -208,21 +203,13 @@ void pcl::Spectroscan3DMovieGrabber::handleFile(const std::string& file) {
 	PointCloud<pcl::PointXYZI>::Ptr xyzi(new pcl::PointCloud<pcl::PointXYZI>);
 	rangeImageToCloud(*scan, *xyzi, settings_);
 
-	for(size_t r=0, idx=0; r< scan->rows(); r++){
-		for(size_t c=0; c< scan->cols(); c++,idx++){
-			float amp = ((float) (*scan)[idx].amplitude);
-			(*xyzi)[idx].intensity= amp/1024.0f;
-		}
-	}
-	(*xyzi).at(0,scan->rows()-1).intensity=0;
-	(*xyzi).at(1,scan->rows()-1).intensity=0;
 	sensor_msgs::PointCloud2Ptr cloud(new sensor_msgs::PointCloud2);
 	pcl::toROSMsg<pcl::PointXYZI>(*xyzi, *cloud);
 	handleCloud(cloud, Eigen::Vector4f(0,0,0,1), Eigen::Quaternionf::Identity() );
 }
 
 pcl::Spectroscan3DRecorder::Spectroscan3DRecorder() :
-		Recorder("Record Spectroscan 3D Frames"),
+		Recorder("Record to Spectroscan 3D Frames"),
 		valid_grabber_(false){
 
 }

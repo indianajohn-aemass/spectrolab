@@ -10,7 +10,7 @@
 
 
 pcl::PCDRecorder::PCDRecorder( ) :
-		Recorder("Record a Point Cloud"),
+		Recorder("Record to PCD"),
 		valid_grabber_(false){
 }
 
