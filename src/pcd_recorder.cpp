@@ -1,46 +1,88 @@
 /*
- * pcd_recorder.cpp
+ * Software License Agreement (BSD License)
  *
- *  Created on: Jun 11, 2013
- *      Author: asher
+ *  Point Cloud Library (PCL) - www.pointclouds.org
+ *  Copyright (c) 2013-, Open Perception, Inc.
+ *
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder(s) nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #include <pcl/io/pcd_recorder.h>
 #include <pcl/io/pcd_io.h>
 
-
-pcl::PCDRecorder::PCDRecorder( ) :
-		Recorder("Record to PCD"),
-		valid_grabber_(false){
+pcl::PCDRecorder::PCDRecorder () :
+    Recorder ("Record to PCD"), valid_grabber_ (false)
+{
 }
 
-bool pcl::PCDRecorder::hasValidGrabber() {
-	return valid_grabber_;
+bool
+pcl::PCDRecorder::hasValidGrabber ()
+{
+  return valid_grabber_;
 }
 
-bool pcl::PCDRecorder::isRecording() {
-	return connection_.connected();
+bool
+pcl::PCDRecorder::isRecording ()
+{
+  return connection_.connected ();
 }
 
- void pcl::PCDRecorder ::start() {
-	if (!valid_grabber_) return;
-	typedef void (sig_cb_cloud) (const  sensor_msgs::PointCloud2::ConstPtr&);
-	connection_ = grabber_->registerCallback<sig_cb_cloud>(boost::bind(&PCDRecorder::cloudCB, this, _1) );
+void
+pcl::PCDRecorder::start ()
+{
+  if (!valid_grabber_)
+    return;
+  typedef void (sig_cb_cloud) (const sensor_msgs::PointCloud2::ConstPtr&);
+  connection_ = grabber_->registerCallback<sig_cb_cloud> (
+      boost::bind (&PCDRecorder::cloudCB, this, _1));
 }
 
-void pcl::PCDRecorder::stop() {
-	connection_.disconnect();
+void
+pcl::PCDRecorder::stop ()
+{
+  connection_.disconnect ();
 }
 
-bool  pcl::PCDRecorder::setGrabber(const boost::shared_ptr<Grabber>& grabber) {
-	grabber_ = grabber;
-	typedef void (sig_cb_cloud) (const  sensor_msgs::PointCloud2::ConstPtr&);
-	valid_grabber_ = grabber_->providesCallback<sig_cb_cloud>();
-	return valid_grabber_;
+bool
+pcl::PCDRecorder::setGrabber (const boost::shared_ptr<Grabber>& grabber)
+{
+  grabber_ = grabber;
+  typedef void (sig_cb_cloud) (const sensor_msgs::PointCloud2::ConstPtr&);
+  valid_grabber_ = grabber_->providesCallback<sig_cb_cloud> ();
+  return valid_grabber_;
 }
 
-void pcl::PCDRecorder::cloudCB(
-		const sensor_msgs::PointCloud2::ConstPtr& cloud) {
-	pcl::PCDWriter writer;
-	writer.writeBinaryCompressed(genNextFileName()+".pcd", *cloud);
+void
+pcl::PCDRecorder::cloudCB (const sensor_msgs::PointCloud2::ConstPtr& cloud)
+{
+  pcl::PCDWriter writer;
+  writer.writeBinaryCompressed (genNextFileName () + ".pcd", *cloud);
 }

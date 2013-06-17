@@ -44,12 +44,18 @@
 #include <pcl/io/movie_grabber.h>
 #include <pcl/io/recorder.h>
 
- namespace pcl{
+ namespace pcl
+ {
 
 	struct PointXYZ;
 	struct PointXYZI;
 	template <typename T> class PointCloud;
 
+
+	/** \brief Settings for projecting Spectroscan3D imgs to Point Clouds
+	  * \author Adam Stambler <adasta@gmail.com>
+	  * \ingroup io
+	  */
 	struct SpectroscanSettings{
 		double range_resolution;
 		double range_offset;
@@ -62,10 +68,13 @@
 		void save(std::string ofname);
 	};
 
+
+	/** \brief Converts a Spectrolab scan into a PCL Point Cloud.
+	*/
+
 	void rangeImageToCloud(const spectrolab::Scan& scan, pcl::PointCloud<pcl::PointXYZI>& cloud,
 							const SpectroscanSettings& settings);
 
-	/*
 	  /** \brief Grabber for the Spectrolab Lidar Camera
 	   * \author Adam Stambler <adasta@gmail.com>
 	   * \ingroup io
@@ -110,7 +119,9 @@
 		virtual float
 		getFramesPerSecond () const{return camera_.getFrameRate();}
 
-		void setSettings(const SpectroscanSettings& settings){
+    /** \brief Set Spectrolab settings for grabber*/
+		void
+		setSettings(const SpectroscanSettings& settings){
 			settings_=settings;
 		}
 
@@ -120,7 +131,11 @@
 		 */
 		typedef void (FilterFunctT) (const boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >&,
 										   boost::shared_ptr<pcl::PointCloud<pcl::PointXYZI> >&);
-		void setFilter( const FilterFunctT& funct){filter_=funct;}
+
+		/** \brief sets the filter used before publishing the point cloud
+		*/
+		void
+		setFilter( const FilterFunctT& funct){filter_=funct;}
 
 	private:
 		spectrolab::SpectroScan3D camera_;
@@ -142,34 +157,62 @@
 	};
 
 
+	  /** \brief Grabber for replaying a directory of Spectrolab lidar frames
+	   * \author Adam Stambler <adasta@gmail.com>
+	   * \ingroup io
+	 */
 
-	class Spectroscan3DMovieGrabber : public MovieGrabber{
+	class PCL_EXPORTS Spectroscan3DMovieGrabber : public MovieGrabber{
 	public:
 		Spectroscan3DMovieGrabber( boost::filesystem::path movie_dir, bool use_extention=false);
 
-		void setSettings(const SpectroscanSettings& settings){
+		void
+		setSettings(const SpectroscanSettings& settings){
 			settings_=settings;
 		}
+
 	protected:
-		virtual void handleFile( const std::string& file);
+
+		virtual void
+		handleFile( const std::string& file);
+
 		boost::signals2::signal<spectrolab::SpectroScan3D::sig_camera_cb>* img_cb_;
 		SpectroscanSettings settings_;
 	};
 
 
-	class Spectroscan3DRecorder : public Recorder{
+	  /** \brief Recorder for saving streams of Spectrolab lidar frames
+	   * \author Adam Stambler <adasta@gmail.com>
+	   * \ingroup io
+	 */
+	class PCL_EXPORTS Spectroscan3DRecorder : public Recorder{
 	public:
 		Spectroscan3DRecorder();
-		virtual bool setGrabber(const boost::shared_ptr<Grabber>& grabber);
-		virtual bool hasValidGrabber();
-		virtual bool isRecording();
-		virtual void start();
-		virtual void stop();
+
+		virtual bool
+		setGrabber(const boost::shared_ptr<Grabber>& grabber);
+
+		virtual bool
+		hasValidGrabber();
+
+		virtual bool
+		isRecording();
+
+		virtual void
+		start();
+
+		virtual void
+		stop();
+
 	protected:
 		boost::shared_ptr<Grabber> grabber_;
+
 		boost::signals2::connection connection_;
+
 		bool valid_grabber_;
-		void frameCB(const spectrolab::Scan::ConstPtr&, time_t);
+
+		void
+		frameCB(const spectrolab::Scan::ConstPtr&, time_t);
 	};
 }
 

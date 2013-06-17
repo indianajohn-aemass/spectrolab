@@ -1,12 +1,43 @@
 /*
- * movie_grabber.h
+ * Software License Agreement (BSD License)
  *
- *  Created on: Jun 8, 2013
- *      Author: asher
+ *  Point Cloud Library (PCL) - www.pointclouds.org
+ *  Copyright (c) 2013-, Open Perception, Inc.
+ *
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the copyright holder(s) nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-#ifndef __PCL_IO_MOVIE_GRABBER__
-#define __PCL_IO_MOVIE_GRABBER__
+
+#ifndef PCL_IO_MOVIE_GRABBER_H_
+#define PCL_IO_MOVIE_GRABBER_H_
 
 #include <pcl/io/grabber.h>
 #include <boost/filesystem.hpp>
@@ -19,8 +50,8 @@
 
 namespace pcl{
 
-/** \brief Grabber interface for PCL 1.x device drivers
-  * \author Suat Gedikli <gedikli@willowgarage.com>
+/** \brief Grabber for playing directories of files
+  * \author Adam Stambler <adasta@gmail.com>
   * \ingroup io
   */
 class PCL_EXPORTS MovieGrabber : public Grabber{
@@ -63,15 +94,29 @@ public:
     virtual float
     getFramesPerSecond () const;
 
-    void playOneFrame();
+    /** \brief triggers publishing of one frame*/
+    void
+    playOneFrame();
 
-    void setFramesPerSecond( float frameframe);
+    /** \brief Set the playback rate in fps*/
+    void
+    setFramesPerSecond( float frame_rate_fps);
 
-    size_t getFrameCount();
-    size_t getCurrentFrame();
-    void setFrameNumber( size_t frame_number);
+    /** \brief returns total number of frames in move*/
+    size_t
+    getFrameCount();
 
-    std::string getMovieDir();
+    /** \brief returns current frame idx*/
+    size_t
+    getCurrentFrame();
+
+    /** \brief set current frame idx*/
+    void
+    setFrameNumber( size_t frame_number);
+
+    /** \brief returns directory of movie frames */
+    std::string
+    getMovieDir();
 
 	typedef void (sig_pointcloud_cb) ( const sensor_msgs::PointCloud2::ConstPtr&);
 	typedef void (sig_xyz_cb) ( const PointCloud<PointXYZ>::ConstPtr&);
@@ -86,7 +131,7 @@ private:
 	boost::signals2::signal<sig_xyzrgb_cb>* xyzrgb_cb_;
 	boost::signals2::signal<sig_frame_num_cb>* frame_num_cb_;
 
-    bool running_;
+    bool running_; //flags if movie is running
 
     boost::thread io_thread_;
     boost::mutex frame_mutex_;
@@ -106,6 +151,7 @@ protected:
 
 	/*
 	 * must be called by handle file
+	 * publishes registered point clouds
 	 */
 	virtual void handleCloud( const sensor_msgs::PointCloud2ConstPtr& cloud,
 				const Eigen::Vector4f& origin, const Eigen::Quaternionf& rot);
