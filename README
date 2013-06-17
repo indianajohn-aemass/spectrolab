@@ -10,7 +10,6 @@ The latest version of this repository can be found on :
 https://github.com/adasta/spectrolab
 
 
-
 == Setup ==
 To use the software, the computer must be connected to the scanner
 such that the computer has the IP address 192.168.0.121.  You need
@@ -24,10 +23,12 @@ This needs to be done everytime the system is started.
 All programs that use the scanner must currently be run as Administrator 
 or root user because the system uses low port numbers.
 
-To view a live point cloud stream:
+To view a live point cloud stream, record the stream, or play back a saved stream:
 
-sudo ./spectroscan3d_simple_viewer
+sudo ./spectrolab_viewer
 
 To test the scanner, you can grab a single frame using 
 
 sudo ./spectroscan3d_grabpcd  frame
+
+
