@@ -119,7 +119,7 @@ namespace pcl
           // Color every point
           for (vtkIdType cp = 0; cp < nr_points; ++cp)
           {
-            float val = cloud_->points[cp].intensity * 200 + 50;
+            float val = cloud_->points[cp].intensity * 255;// + 50;
             if (val > 255)
               val = 255;
             colors[cp * 3 + 0] = val;
