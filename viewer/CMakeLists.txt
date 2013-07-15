@@ -12,35 +12,44 @@ include_directories(${QT_INCLUDES})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
 					${CMAKE_CURRENT_LIST_DIR} 
 					${CMAKE_CURRENT_LIST_DIR}/src
-					${CMAKE_CURRENT_LIST_DIR}/include )
+                                        ${CMAKE_CURRENT_LIST_DIR}/include
+)
 
 SET(viewer_SOURCES src/main.cpp
 				   src/cloud_player_widget.cpp
 				   src/viewer_application.cpp
 				   src/spectroscan_settings_widget.cpp
-				   src/cloud_renderer.cpp)
+                                   src/cloud_renderer.cpp
+                                   src/cmd_interface_widget.cpp
+)
 
 SET(viewer_HEADERS include/pcl/visualization/cloud_player_widget.h
 				   include/pcl/visualization/cloud_renderer.h
 				   src/viewer_application.h
-				   src/spectroscan_settings_widget.h
-				   )
+                                   src/spectroscan_settings_widget.h
+                                   src/cmd_interface_widget.h
+)
 
-QT4_WRAP_UI(viewer_FORM_HEADERS  ui/cloud_player.ui 
-								 ui/viewer_main.ui
-								 ui/spectroscan_settings.ui)
+QT4_WRAP_UI(viewer_FORM_HEADERS ui/cloud_player.ui
+                                ui/viewer_main.ui
+                                ui/spectroscan_settings.ui
+                                ui/cmd_interface.ui
+)
+
 QT4_ADD_RESOURCES(viewer_RESOURCES_RCC  
-								   resources/viewer.qrc)
+                                resources/viewer.qrc
+)
 
 
 QT4_WRAP_CPP(viewer_HEADERS_MOC ${viewer_HEADERS})
 
+file(GLOB_RECURSE GLOB_HEADERS  ${CMAKE_CURRENT_LIST_DIR}/include  "*.h" "*.hpp")
 
 ADD_EXECUTABLE(spectrolab_viewer ${viewer_SOURCES} 
 								 ${viewer_HEADERS}
     						     ${viewer_HEADERS_MOC}
     							 ${viewer_FORM_HEADERS} 
-    							 ${viewer_RESOURCES_RCC})
+                                                         ${viewer_RESOURCES_RCC} ${GLOB_HEADERS})
     							
 TARGET_LINK_LIBRARIES(spectrolab_viewer ${QT_LIBRARIES} 
 								${SPECTROLAB_DEP_LIBRARIES} 

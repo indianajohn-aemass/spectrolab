@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>670</width>
-     <height>30</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -54,6 +54,7 @@
     </property>
     <addaction name="action_connect"/>
     <addaction name="action_settings"/>
+    <addaction name="action_cmd_interface"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menuSpectroscan3D"/>
@@ -97,6 +98,14 @@
   <action name="action_settings">
    <property name="text">
     <string>Edit Settings</string>
+   </property>
+  </action>
+  <action name="action_cmd_interface">
+   <property name="text">
+    <string>Command Interface</string>
+   </property>
+   <property name="toolTip">
+    <string>Advanced interface for sending firmware commands to the Spectroscan3D</string>
    </property>
   </action>
  </widget>

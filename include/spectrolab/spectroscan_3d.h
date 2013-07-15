@@ -220,7 +220,7 @@ namespace spectrolab
         REFERENCE_PULSE_OFF = 0x38,
         HIGH_VOLTAGE_ON = 0x3A,
         HIGH_VOLTAGE_OFF = 0x3B,
-        RX_OFFSET_VOLTAGE_REMOVE = 0x3F,
+        RX_OFFSET_VOLTAGE_REMOVE = 0x3F
       };
 
       enum FirmwareReadCommands
@@ -239,12 +239,12 @@ namespace spectrolab
         //response is  0x00 0x00
         ODD_SYNC_DELAY_WRITE = 0x23,
         EVEN_SYNC_DELAY_WRITE = 0x2F,
-        HIGH_GAIN_AMPLITUDE_TRHESHOLD_WRITE = 0x24,
+        HIGH_GAIN_AMPLITUDE_THRESHOLD_WRITE = 0x24,
         HIGH_GAIN_AMPLITUDE_SATURATE_WRITE = 0x34,
         LOW_GAIN_AMPLITUDE_THRESHOLD_WRITE = 0x28,
         LOW_GAIN_AMPLITUDE_SATURATE_WRITE = 0x35,
         IN_FIFO_DELAY_WRITE = 0x2A,
-        TARGET_SELECT_WRITE = 0x33,
+        TARGET_SELECT_WRITE = 0x33
       };
 
       void readFirmware (FirmwareReadCommands cmd, uint8_t& response);
@@ -266,6 +266,8 @@ namespace spectrolab
       {
         print_debug = funct;
       }
+
+      const std::vector<uint8_t>& getLastResponse(){return cmd_response_;}
 
     private:
 
@@ -328,7 +330,7 @@ namespace spectrolab
           std::size_t bytes_transferred);
 
       bool cmd_response_recieved_;
-      uint8_t cmd_response_;
+      std::vector<uint8_t> cmd_response_;
       bool cmd_timed_out_;
       void handleTimeout (const boost::system::error_code& error)
       {

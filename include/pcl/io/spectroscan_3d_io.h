@@ -137,6 +137,12 @@
 		void
 		setFilter( const FilterFunctT& funct){filter_=funct;}
 
+
+        /** \brief sets the filter used before publishing the point cloud
+        */
+        spectrolab::SpectroScan3D&
+        getDriver(  ){ return camera_;}
+
 	private:
 		spectrolab::SpectroScan3D camera_;
 		SpectroscanSettings settings_;

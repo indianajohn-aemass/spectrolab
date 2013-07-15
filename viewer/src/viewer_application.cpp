@@ -51,7 +51,7 @@
 
 SpectolabViewer::SpectolabViewer() :
 settings_("Open Perception", "Spectrolab Viewer"),
-frame_rate_(5){
+  frame_rate_(5) , interface_widget_(NULL){
 	ui_.setupUi(this);
 	this->ui_.centralwidget->setLayout(new QVBoxLayout);
 	cplayer_= new pcl::visualization::CloudPlayerWidget();
@@ -59,6 +59,7 @@ frame_rate_(5){
 	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererRange("intensity"));
 	cplayer_->setCurrentRenderer(cplayer_->getNumRenderers()-1);
 	cplayer_->addCloudRenderer(new pcl::visualization::CloudRendererBW);
+	cplayer_->addCloudRenderer (new pcl::visualization::CloudRendererIZ ());
 
 	cplayer_->addRecorder(new pcl::Spectroscan3DRecorder);
 
@@ -82,6 +83,8 @@ frame_rate_(5){
 
 	settings_widget_ = new SpectroscanSettingsWidget(&spectroscan_settings_);
 	connect(settings_widget_, SIGNAL(settingsApplied()), this, SLOT(spectroscan3dSettingsApplied()));
+
+    connect(ui_.action_cmd_interface, SIGNAL(triggered()), this, SLOT(commandInterface()));
 
 }
 
@@ -190,6 +193,26 @@ void SpectolabViewer::spectroscan3dSettingsApplied(){
 
 void SpectolabViewer::closeEvent(QCloseEvent* event) {
 	this->settings_widget_->close();
+    if (interface_widget_!=NULL) {
+        interface_widget_->close();
+        delete interface_widget_;
+    }
 	QMainWindow::closeEvent(event);
 }
 
+
+void SpectolabViewer::commandInterface(){
+    if (interface_widget_ != NULL){
+        delete interface_widget_;
+    }
+    if (grabber_==NULL){
+        this->statusBar()->showMessage("No Spectroscan 3D connected.  Cannot open Command Interface", 30000);
+        return;
+    }
+    if (dynamic_cast<pcl::Spectroscan3DGrabber*>( grabber_.get()) ==NULL){
+        this->statusBar()->showMessage("No Spectroscan 3D connected.  Cannot open Command Interface", 30000);
+        return;
+    }
+    interface_widget_ = new CMDInterfaceWidget(boost::dynamic_pointer_cast<pcl::Spectroscan3DGrabber>( grabber_), NULL);
+    interface_widget_->show();
+}

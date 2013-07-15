@@ -174,7 +174,38 @@ namespace pcl
         void grabberCB (const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
         boost::signals2::connection connection_;
     };
+
+
+    class CloudRendererIZ : public CloudRenderer
+    {
+      public:
+    	CloudRendererIZ ();
+        virtual ~CloudRendererIZ ()
+        {
+        }
+        virtual bool
+        setup (boost::shared_ptr<Grabber>& grabber);
+
+        virtual void
+        disconnect ();
+
+        virtual void
+        renderNew ();
+
+        void
+        setCloud (const sensor_msgs::PointCloud2ConstPtr& cloud);
+
+      private:
+        boost::mutex cloud_mutex_;
+        pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
+        bool valid_grabber_;
+        void grabberCB (const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
+        boost::signals2::connection connection_;
+    };
   }
 }
+
+
+
 
 #endif /* PCL_VISUALIZATION_CLOUD_RENDERER_H_ */

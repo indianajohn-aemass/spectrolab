@@ -127,7 +127,7 @@ spectrolab::SpectroScan3D::readFirmware (FirmwareReadCommands cmd,
   uint8_t buff[] = { 0, 0, 0 };
   buff[0] = cmd;
   send (buff, 3);
-  response = cmd_response_;
+  response = cmd_response_.back();
 }
 
 void
@@ -287,7 +287,8 @@ spectrolab::SpectroScan3D::handleCMDRead (
     return;
   }
 
-  cmd_response_ = cmd_buffer_[bytes_transferred - 1];
+  cmd_response_.resize(bytes_transferred);
+  for(int i=0; i<cmd_response_.size(); i++) cmd_response_[i]= cmd_buffer_[i];
   cmd_rx_socket_->async_receive (ba::buffer (cmd_buffer_),
       boost::bind (&SpectroScan3D::handleCMDRead, this, _1, _2));
   cmd_response_recieved_ = true;

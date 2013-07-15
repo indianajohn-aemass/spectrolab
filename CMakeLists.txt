@@ -48,10 +48,13 @@ endif()
 add_library(spectrolab src/spectroscan_3d.cpp)
 target_link_libraries( spectrolab  ${Boost_LIBRARIES} )
 
+file(GLOB_RECURSE SPECTROLAB_HEADERS  ${CMAKE_CURRENT_LIST_DIR}/include  "*.h" "*.hpp")
+
 add_library(pcl_spectrolab_io  src/spectroscan_3d_io.cpp
 							   src/movie_grabber.cpp
 							   src/recorder.cpp
 							   src/pcd_recorder.cpp
+${SPECTROLAB_HEADERS}
 							   )
 target_link_libraries( pcl_spectrolab_io 
 							${SPECTROLAB_DEP_LIBRARIES} 

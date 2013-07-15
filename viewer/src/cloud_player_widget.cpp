@@ -13,6 +13,8 @@
 #include <pcl/io/movie_grabber.h>
 #include <pcl/io/pcd_recorder.h>
 
+#include <vtkRenderWindow.h>
+
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget (QWidget* parent,
     Qt::WindowFlags f) :
     QWidget (parent, f), current_renderer_idx_ (2), playing_ (false),
