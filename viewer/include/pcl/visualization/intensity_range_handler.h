@@ -41,6 +41,7 @@
 #include <pcl/visualization/point_cloud_handlers.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
+#include <vtkLookupTable.h>
 
 namespace pcl
 {
@@ -108,23 +109,26 @@ namespace pcl
             return;
 #endif
           if (!scalars)
-        	  scalars = vtkSmartPointer<vtkFloatArray>::New ();
-          scalars->SetNumberOfComponents (1);
+              scalars = vtkSmartPointer<vtkUnsignedCharArray>::New ();
+          scalars->SetNumberOfComponents (3);
+
 
           vtkIdType nr_points = cloud_->points.size ();
-          reinterpret_cast<vtkFloatArray*> (& (*scalars))->SetNumberOfTuples (
+          reinterpret_cast<vtkUnsignedCharArray*> (& (*scalars))->SetNumberOfTuples (
               nr_points);
 
-          // Get a random color
-          float* colors = new float[nr_points ];
+          vtkSmartPointer<vtkLookupTable> range_lookup_table =
+            vtkSmartPointer<vtkLookupTable>::New();
+          range_lookup_table->SetTableRange(0.0, 20.0);
+          range_lookup_table->Build();
 
-          float minz=99999999, maxz=-999999;
-          for(uint32_t i=0;  i< cloud_->size();i++){
-        	  if ( std::isnan ( (*cloud_)[i].z)  ) continue;
-        	  if (minz> (*cloud_)[i].z) minz = (*cloud_)[i].z;
-              if (maxz< (*cloud_)[i].z) maxz = (*cloud_)[i].z;
-          }
-          float zrange = maxz-minz;
+          vtkSmartPointer<vtkLookupTable> intensity_lookup_table =
+            vtkSmartPointer<vtkLookupTable>::New();
+          intensity_lookup_table->SetTableRange(0.0, 1);
+          intensity_lookup_table->Build();
+
+          // Get a random color
+          unsigned char* colors = new unsigned char[nr_points * 3];
 
           // Color every point
           uint32_t j=0;
@@ -133,13 +137,15 @@ namespace pcl
         	  if ( std::isnan ( (*cloud_)[cp].z)  ) {
         		  continue;
         	  }
-            float val = cloud_->points[cp].intensity  ;
-            if (val>1)val=1;
-            if (val <0) val=0;
-            colors[j ] = val*.5+ (cloud_->points[cp].z-.5)/20.0f;
+ ;
+            double icolor[3], rcolor[3];
+            range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
+            intensity_lookup_table->GetColor((*cloud_)[cp].intensity, icolor);
+
+            for( int k=0; k<3; k++) colors[j*3+k ] =   255*(icolor[k]*0.25+ 0.75*rcolor[k]);
             j++;
           }
-          reinterpret_cast<vtkFloatArray*>(&(*scalars))->SetArray (colors, j, 0);
+          reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray (colors, 3 * j, 0);
           return (true);
 
 #if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )

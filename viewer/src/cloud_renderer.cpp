@@ -184,7 +184,7 @@ void pcl::visualization::CloudRendererBW::setCloud (
 pcl::visualization::CloudRendererIZ::CloudRendererIZ () :
     valid_grabber_ (false)
 {
-  description_ = "Range & intensity coloring";
+  description_ = "Range/intensity coloring";
 }
 
 bool
