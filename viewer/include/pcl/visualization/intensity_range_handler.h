@@ -42,6 +42,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkLookupTable.h>
+#include <cmath>
 
 namespace pcl
 {
@@ -134,7 +135,7 @@ namespace pcl
           uint32_t j=0;
           for (vtkIdType cp = 0; cp < nr_points; ++cp)
           {
-        	  if ( std::isnan ( (*cloud_)[cp].z)  ) {
+			  if ( pcl_isnan( (*cloud_)[cp].z)  ) {
         		  continue;
         	  }
  ;
@@ -142,14 +143,16 @@ namespace pcl
             range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
             intensity_lookup_table->GetColor((*cloud_)[cp].intensity, icolor);
 
-            for( int k=0; k<3; k++) colors[j*3+k ] =   255*(icolor[k]*0.25+ 0.75*rcolor[k]);
+            for( int k=0; k<3; k++) colors[j*3+k ] =   255*(icolor[k]*0.4+ 0.6*rcolor[k]);
             j++;
           }
           reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray (colors, 3 * j, 0);
-          return (true);
+        
 
 #if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
           return true;
+#else
+		    return;
 #endif
         }
 
