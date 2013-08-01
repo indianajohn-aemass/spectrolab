@@ -47,165 +47,147 @@
 #include<pcl/point_types.h>
 #include <boost/thread.hpp>
 
-namespace pcl
-{
-  namespace visualization
-  {
-    /** \brief Abstract base class for rendering a cloud in a CloudPlayerWidget
-     * \author Adam Stambler <adasta@gmail.com>
-     * \ingroup visualization
-   */
-    class CloudRenderer : public QObject
-    {
-      Q_OBJECT
-      protected:
-        std::string description_;
-        QVTKWidget* widget_;
-        pcl::visualization::PCLVisualizer* visualizer_;
-        boost::signals2::connection connection_;
-      public:
-        CloudRenderer () :
-            widget_ (NULL), visualizer_ (NULL)
-        {
-        }
-        virtual ~CloudRenderer ()
-        {
-        }
-
-        /* \brief initialize with visualizer and widget */
-        virtual void
-        init (QVTKWidget* widget, PCLVisualizer * visualizer)
-        {
-          widget_ = widget;
-          visualizer_ = visualizer;
-        }
-
-        /*\brief setup renderer for rendering grabber point clouds */
-        virtual bool
-        setup (boost::shared_ptr<Grabber>& grabber)=0;
-
-        /* \brief stops rendering and disconnects from grabber */
-        virtual void
-        disconnect ()=0;
-
-        /* \brief manually set a new cloud rather than receiving it from the grabber */
-        virtual void
-        setCloud (const sensor_msgs::PointCloud2ConstPtr& cloud)=0;
-
-        /* \brief tells the PCLVisualizer to render  a new point cloud if one is present */
-        virtual void
-        renderNew ()=0;
-
-        /* \brief returns description of renderer */
-        std::string
-        description () { return description_;}
-
-      signals:
-        void update ();
-    };
-
-    /** \brief Renders a point field along a color map range in a CloudPlayerWidget
-     * \author Adam Stambler <adasta@gmail.com>
-     * \ingroup visualization
-   */
-    class CloudRendererRange : public CloudRenderer
-    {
-      public:
-        CloudRendererRange (std::string field);
-
-        virtual ~CloudRendererRange ()
-        {
-        }
-
-        virtual bool
-        setup (boost::shared_ptr<Grabber>& grabber);
-
-        virtual void
-        disconnect ();
-
-        virtual void
-        renderNew ();
-
-        void
-        setCloud (const sensor_msgs::PointCloud2ConstPtr& cloud)
-        {
-          cloud_ = cloud;
-        }
-
-      private:
-        std::string field_name_;
-        boost::mutex cloud_mutex_;
-
-        sensor_msgs::PointCloud2::ConstPtr cloud_;
-
-        bool valid_grabber_;
-        void grabberCB (const sensor_msgs::PointCloud2::ConstPtr& cloud);
-        boost::signals2::connection connection_;
-    };
-
-
-    /** \brief Renders intensity in black and white in a CloudPlayerWidget
-     * \author Adam Stambler <adasta@gmail.com>
-     * \ingroup visualization
-   */
-    class CloudRendererBW : public CloudRenderer
-    {
-      public:
-        CloudRendererBW ();
-        virtual ~CloudRendererBW ()
-        {
-        }
-        virtual bool
-        setup (boost::shared_ptr<Grabber>& grabber);
-
-        virtual void
-        disconnect ();
-
-        virtual void
-        renderNew ();
-
-        void
-        setCloud (const sensor_msgs::PointCloud2ConstPtr& cloud);
-
-      private:
-        boost::mutex cloud_mutex_;
-        pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
-        bool valid_grabber_;
-        void grabberCB (const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
-        boost::signals2::connection connection_;
-    };
-
-
-    class CloudRendererIZ : public CloudRenderer
-    {
-      public:
-    	CloudRendererIZ ();
-        virtual ~CloudRendererIZ ()
-        {
-        }
-        virtual bool
-        setup (boost::shared_ptr<Grabber>& grabber);
-
-        virtual void
-        disconnect ();
-
-        virtual void
-        renderNew ();
-
-        void
-        setCloud (const sensor_msgs::PointCloud2ConstPtr& cloud);
-
-      private:
-        boost::mutex cloud_mutex_;
-        pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
-        bool valid_grabber_;
-        void grabberCB (const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
-        boost::signals2::connection connection_;
-    };
+namespace pcl {
+namespace visualization {
+/** \brief Abstract base class for rendering a cloud in a CloudPlayerWidget
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup visualization
+ */
+class CloudRenderer : public QObject {
+Q_OBJECT
+ protected:
+  std::string description_;
+  QVTKWidget* widget_;
+  pcl::visualization::PCLVisualizer* visualizer_;
+  boost::signals2::connection connection_;
+ public:
+  CloudRenderer()
+      : widget_(NULL),
+        visualizer_(NULL) {
   }
+  virtual ~CloudRenderer() {
+  }
+
+  /* \brief initialize with visualizer and widget */
+  virtual void init(QVTKWidget* widget, PCLVisualizer * visualizer) {
+    widget_ = widget;
+    visualizer_ = visualizer;
+  }
+
+  /*\brief setup renderer for rendering grabber point clouds */
+  virtual bool
+  setup(boost::shared_ptr<Grabber>& grabber)=0;
+
+  /* \brief stops rendering and disconnects from grabber */
+  virtual void
+  disconnect()=0;
+
+  /* \brief manually set a new cloud rather than receiving it from the grabber */
+  virtual void
+  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud)=0;
+
+  /* \brief tells the PCLVisualizer to render  a new point cloud if one is present */
+  virtual void
+  renderNew()=0;
+
+  /* \brief returns description of renderer */
+  std::string description() {
+    return description_;
+  }
+
+signals:
+  void update();
+};
+
+/** \brief Renders a point field along a color map range in a CloudPlayerWidget
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup visualization
+ */
+class CloudRendererRange : public CloudRenderer {
+ public:
+  CloudRendererRange(std::string field);
+
+  virtual ~CloudRendererRange() {
+  }
+
+  virtual bool
+  setup(boost::shared_ptr<Grabber>& grabber);
+
+  virtual void
+  disconnect();
+
+  virtual void
+  renderNew();
+
+  void setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud) {
+    cloud_ = cloud;
+  }
+
+ private:
+  std::string field_name_;
+  boost::mutex cloud_mutex_;
+
+  sensor_msgs::PointCloud2::ConstPtr cloud_;
+
+  bool valid_grabber_;
+  void grabberCB(const sensor_msgs::PointCloud2::ConstPtr& cloud);
+  boost::signals2::connection connection_;
+};
+
+/** \brief Renders intensity in black and white in a CloudPlayerWidget
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup visualization
+ */
+class CloudRendererBW : public CloudRenderer {
+ public:
+  CloudRendererBW();
+  virtual ~CloudRendererBW() {
+  }
+  virtual bool
+  setup(boost::shared_ptr<Grabber>& grabber);
+
+  virtual void
+  disconnect();
+
+  virtual void
+  renderNew();
+
+  void
+  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+
+ private:
+  boost::mutex cloud_mutex_;
+  pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
+  bool valid_grabber_;
+  void grabberCB(const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
+  boost::signals2::connection connection_;
+};
+
+class CloudRendererIZ : public CloudRenderer {
+ public:
+  CloudRendererIZ();
+  virtual ~CloudRendererIZ() {
+  }
+  virtual bool
+  setup(boost::shared_ptr<Grabber>& grabber);
+
+  virtual void
+  disconnect();
+
+  virtual void
+  renderNew();
+
+  void
+  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+
+ private:
+  boost::mutex cloud_mutex_;
+  pcl::PointCloud<pcl::PointXYZI>::ConstPtr cloud_;
+  bool valid_grabber_;
+  void grabberCB(const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud);
+  boost::signals2::connection connection_;
+};
 }
-
-
-
+}
 
 #endif /* PCL_VISUALIZATION_CLOUD_RENDERER_H_ */

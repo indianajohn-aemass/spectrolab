@@ -48,104 +48,93 @@
 
 class QErrorMessage;
 
-namespace pcl
-{
-  namespace visualization
-  {
-    /** \brief Widget for playing/recording point cloud streams
-     * \author Adam Stambler <adasta@gmail.com>
-     * \ingroup visualization
-     */
+namespace pcl {
+namespace visualization {
+/** \brief Widget for playing/recording point cloud streams
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup visualization
+ */
 
-    class CloudPlayerWidget : public QWidget
-    {
-      Q_OBJECT
+class CloudPlayerWidget : public QWidget {
+Q_OBJECT
 
-      public:
-        CloudPlayerWidget (QWidget* parent = 0, Qt::WindowFlags f = 0);
-        virtual ~CloudPlayerWidget ();
+ public:
+  CloudPlayerWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  virtual ~CloudPlayerWidget();
 
+  void
+  setGrabber(boost::shared_ptr<Grabber>& grabber);
 
-        void
-        setGrabber (boost::shared_ptr<Grabber>& grabber);
+  void
+  addCloudRenderer(CloudRenderer* renderer);
 
+  size_t getNumRenderers() {
+    return renderers_.size();
+  }
 
-        void
-        addCloudRenderer (CloudRenderer* renderer);
+  uint32_t currentRendererIDX() {
+    return current_renderer_idx_;
+  }
 
-        size_t
-        getNumRenderers ()
-        {
-          return renderers_.size ();
-        }
+  CloudRenderer*
+  getRenderer(size_t idx);
 
-        uint32_t
-        currentRendererIDX ()
-        {
-          return current_renderer_idx_;
-        }
+  void
+  setCurrentRenderer(int idx);
 
-        CloudRenderer*
-        getRenderer (size_t idx);
+  void
+  addRecorder(Recorder* recorder);
 
-        void
-        setCurrentRenderer (int idx);
+  uint32_t currentRecorderIDX() {
+    return current_recorder_idx_;
+  }
 
-        void
-        addRecorder (Recorder* recorder);
+  void
+  setCurrentRecorder(uint32_t idx);
 
-        uint32_t
-        currentRecorderIDX ()
-        {
-          return current_recorder_idx_;
-        }
+ private:
+  boost::shared_ptr<Grabber> grabber_;
+  bool is_movie_grabber_;
+  PCLVisualizer* pcl_visualizer_;
 
-        void
-        setCurrentRecorder (uint32_t idx);
+  void keyboardCB(const pcl::visualization::KeyboardEvent& event);
 
-      private:
-        boost::shared_ptr<Grabber> grabber_;
-        bool is_movie_grabber_;
-        PCLVisualizer* pcl_visualizer_;
+  Ui_CloudPlayer ui_;
+  std::vector<CloudRenderer*> renderers_;
+  std::vector<Recorder*> recorders_;
 
-        void keyboardCB (const pcl::visualization::KeyboardEvent& event);
+  uint32_t current_renderer_idx_;
+  uint32_t current_recorder_idx_;
 
-        Ui_CloudPlayer ui_;
-        std::vector<CloudRenderer*> renderers_;
-        std::vector<Recorder*> recorders_;
+  bool recording_;
+  bool playing_;
+  boost::signals2::connection progress_connection_;
 
-        uint32_t current_renderer_idx_;
-        uint32_t current_recorder_idx_;
+  QErrorMessage* error_msg_;
 
-        bool recording_;
-        bool playing_;
-        boost::signals2::connection progress_connection_;
+  void cacheCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+  sensor_msgs::PointCloud2ConstPtr cached_cloud_;
+  boost::signals2::connection cache_connection_;
 
-        QErrorMessage* error_msg_;
+ public slots:
+  void playPause();
+  void sliderValueChanged(int val);
+  void record();
 
-        void cacheCloud (const sensor_msgs::PointCloud2ConstPtr& cloud);
-        sensor_msgs::PointCloud2ConstPtr cached_cloud_;
-        boost::signals2::connection cache_connection_;
+  void resetView();
+  void updateCloud();
+ protected:
+  void enablePlayback();
+  void disablePlayback();
+  void progressUpdate(size_t frame_num, size_t frame_total);
+  void startRecording();
+  void stopRecording();
+  void enableRenderering();
 
-      public slots:
-        void playPause ();
-        void sliderValueChanged (int val);
-        void record ();
+ protected slots:
+  void rendererSelectedViaMenu();
+};
 
-        void resetView ();
-        void updateCloud ();
-      protected:
-        void enablePlayback ();
-        void disablePlayback ();
-        void progressUpdate (size_t frame_num, size_t frame_total);
-        void startRecording ();
-        void stopRecording ();
-        void enableRenderering ();
-
-      protected slots:
-        void rendererSelectedViaMenu ();
-    };
-
-  }/* namespace visualization */
+}/* namespace visualization */
 } /* namespace pcl */
 #endif /* PCL_VISUALIZATION_CLOUD_PLAYER_WIDGET_H_ */

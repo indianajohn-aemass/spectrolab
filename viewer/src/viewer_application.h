@@ -47,37 +47,36 @@
 #include <QWidget>
 #include <qsettings.h>
 
-class SpectolabViewer : public QMainWindow
-{
-  Q_OBJECT
-  public:
-    SpectolabViewer ();
-    virtual ~SpectolabViewer ();
+class SpectolabViewer : public QMainWindow {
+Q_OBJECT
+ public:
+  SpectolabViewer();
+  virtual ~SpectolabViewer();
 
-  public slots:
-    void loadScan ();
-    void loadMovie ();
-    void setFrameRate ();
-    void spectroscan3dConnect ();
-    void spectroscan3dSettings ();
-    void spectroscan3dSettingsApplied ();
+ public slots:
+  void loadScan();
+  void loadMovie();
+  void setFrameRate();
+  void spectroscan3dConnect();
+  void spectroscan3dSettings();
+  void spectroscan3dSettingsApplied();
 
-    void commandInterface();
+  void commandInterface();
 
-  private:
-    Ui_MainWindow ui_;
-    pcl::visualization::CloudPlayerWidget* cplayer_;
-    boost::shared_ptr<pcl::Grabber> grabber_;
-    float frame_rate_;
+ private:
+  Ui_MainWindow ui_;
+  pcl::visualization::CloudPlayerWidget* cplayer_;
+  boost::shared_ptr<pcl::Grabber> grabber_;
+  float frame_rate_;
 
-    QSettings settings_;
-    pcl::SpectroscanSettings spectroscan_settings_;
-    SpectroscanSettingsWidget* settings_widget_;
+  QSettings settings_;
+  pcl::SpectroscanSettings spectroscan_settings_;
+  SpectroscanSettingsWidget* settings_widget_;
 
-    CMDInterfaceWidget* interface_widget_;
+  CMDInterfaceWidget* interface_widget_;
 
-  protected:
-    virtual void closeEvent (QCloseEvent * event);
+ protected:
+  virtual void closeEvent(QCloseEvent * event);
 };
 
 #endif /* VIEWER_APPLICATION_H_ */

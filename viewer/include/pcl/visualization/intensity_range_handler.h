@@ -44,135 +44,119 @@
 #include <vtkLookupTable.h>
 #include <cmath>
 
-namespace pcl
-{
-  namespace visualization
-  {
+namespace pcl {
+namespace visualization {
 
-    /** \brief Color Handler for rendering intensity in Black & White
-     * \author Adam Stambler <adasta@gmail.com>
-     * \ingroup visualization
-     */
-    template<typename PointT>
-    class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT>
-    {
-      public:
-        typedef pcl::PointCloud<PointT> PointCloud;
-        typedef typename PointCloud::Ptr PointCloudPtr;
-        typedef typename PointCloud::ConstPtr PointCloudConstPtr;
+/** \brief Color Handler for rendering intensity in Black & White
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup visualization
+ */
+template<typename PointT>
+class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
+ public:
+  typedef pcl::PointCloud<PointT> PointCloud;
+  typedef typename PointCloud::Ptr PointCloudPtr;
+  typedef typename PointCloud::ConstPtr PointCloudConstPtr;
 
-        typedef boost::shared_ptr<PointCloudIZHandler<PointT> > Ptr;
-        typedef boost::shared_ptr<const PointCloudIZHandler<PointT> > ConstPtr;
+  typedef boost::shared_ptr<PointCloudIZHandler<PointT> > Ptr;
+  typedef boost::shared_ptr<const PointCloudIZHandler<PointT> > ConstPtr;
 
-        /** \brief Constructor. */
-        PointCloudIZHandler (const PointCloudConstPtr &cloud) :
-            PointCloudColorHandler<PointT> (cloud)
-        {
-          capable_ = true;
-          cloud_ = cloud;
-        }
-        virtual ~PointCloudIZHandler ()
-        {
-        }
-
-        /** \brief Abstract getName method. */
-        virtual std::string
-        getName () const
-        {
-          return "PointCloudIZHandler";
-        }
-        ;
-
-        /** \brief Abstract getFieldName method. */
-        virtual std::string
-        getFieldName () const
-        {
-          return "intensity";
-        }
-        ;
-
-        /** \brief Obtain the actual color for the input dataset as vtk scalars.
-         * \param[out] scalars the output scalars containing the color for the dataset
-         * \return true if the operation was successful (the handler is capable and
-         * the input cloud was given as a valid pointer), false otherwise
-         */
-#if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
-        virtual bool
-        getColor (vtkSmartPointer<vtkDataArray> &scalars) const
-        {
-          if (!capable_ || !cloud_)
-            return (false);
-#else
-          virtual void
-          getColor (vtkSmartPointer<vtkDataArray> &scalars) const
-          {
-            if (!capable_ || !cloud_)
-            return;
-#endif
-          if (!scalars)
-              scalars = vtkSmartPointer<vtkUnsignedCharArray>::New ();
-          scalars->SetNumberOfComponents (3);
-
-
-          vtkIdType nr_points = cloud_->points.size ();
-          reinterpret_cast<vtkUnsignedCharArray*> (& (*scalars))->SetNumberOfTuples (
-              nr_points);
-
-          vtkSmartPointer<vtkLookupTable> range_lookup_table =
-            vtkSmartPointer<vtkLookupTable>::New();
-          range_lookup_table->SetTableRange(0.0, 20.0);
-          range_lookup_table->Build();
-
-          vtkSmartPointer<vtkLookupTable> intensity_lookup_table =
-            vtkSmartPointer<vtkLookupTable>::New();
-          intensity_lookup_table->SetTableRange(0.0, 1);
-          intensity_lookup_table->Build();
-
-          // Get a random color
-          unsigned char* colors = new unsigned char[nr_points * 3];
-
-          // Color every point
-          uint32_t j=0;
-          for (vtkIdType cp = 0; cp < nr_points; ++cp)
-          {
-			  if ( pcl_isnan( (*cloud_)[cp].z)  ) {
-        		  continue;
-        	  }
- ;
-            double icolor[3], rcolor[3];
-            range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
-            intensity_lookup_table->GetColor((*cloud_)[cp].intensity, icolor);
-
-            for( int k=0; k<3; k++) colors[j*3+k ] =   255*(icolor[k]*0.4+ 0.6*rcolor[k]);
-            j++;
-          }
-          reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray (colors, 3 * j, 0);
-        
-
-#if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
-          return true;
-#else
-		    return;
-#endif
-        }
-
-        /** \brief Set the input cloud to be used.
-         * \param[in] cloud the input cloud to be used by the handler
-         */
-        virtual void
-        setInputCloud (const PointCloudConstPtr &cloud)
-        {
-          cloud_ = cloud;
-        }
-
-      protected:
-        // Members derived from the base class
-        using PointCloudColorHandler<PointT>::cloud_;
-        using PointCloudColorHandler<PointT>::capable_;
-
-    };
-
+  /** \brief Constructor. */
+  PointCloudIZHandler(const PointCloudConstPtr &cloud)
+      : PointCloudColorHandler<PointT>(cloud) {
+    capable_ = true;
+    cloud_ = cloud;
   }
+  virtual ~PointCloudIZHandler() {
+  }
+
+  /** \brief Abstract getName method. */
+  virtual std::string getName() const {
+    return "PointCloudIZHandler";
+  }
+  ;
+
+  /** \brief Abstract getFieldName method. */
+  virtual std::string getFieldName() const {
+    return "intensity";
+  }
+  ;
+
+  /** \brief Obtain the actual color for the input dataset as vtk scalars.
+   * \param[out] scalars the output scalars containing the color for the dataset
+   * \return true if the operation was successful (the handler is capable and
+   * the input cloud was given as a valid pointer), false otherwise
+   */
+#if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
+  virtual bool getColor(vtkSmartPointer<vtkDataArray> &scalars) const {
+    if (!capable_ || !cloud_)
+      return (false);
+#else
+    virtual void
+    getColor (vtkSmartPointer<vtkDataArray> &scalars) const
+    {
+      if (!capable_ || !cloud_)
+      return;
+#endif
+    if (!scalars)
+      scalars = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    scalars->SetNumberOfComponents(3);
+
+    vtkIdType nr_points = cloud_->points.size();
+    reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetNumberOfTuples(
+        nr_points);
+
+    vtkSmartPointer<vtkLookupTable> range_lookup_table = vtkSmartPointer<
+        vtkLookupTable>::New();
+    range_lookup_table->SetTableRange(0.0, 20.0);
+    range_lookup_table->Build();
+
+    vtkSmartPointer<vtkLookupTable> intensity_lookup_table = vtkSmartPointer<
+        vtkLookupTable>::New();
+    intensity_lookup_table->SetTableRange(0.0, 1);
+    intensity_lookup_table->Build();
+
+    unsigned char* colors = new unsigned char[nr_points * 3];
+
+    // Color every point
+    uint32_t j = 0;
+    for (vtkIdType cp = 0; cp < nr_points; ++cp) {
+      if (pcl_isnan( (*cloud_)[cp].z)) {
+        continue;
+      }
+
+      double icolor[3], rcolor[3];
+      range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
+      intensity_lookup_table->GetColor((*cloud_)[cp].intensity, icolor);
+
+      for( int k=0; k<3; k++) colors[j*3+k ] = 255*(icolor[k]*0.4+ 0.6*rcolor[k]);
+      j++;
+    }
+    reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray(colors,
+                                                                   3 * j, 0);
+
+#if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
+    return true;
+#else
+    return;
+#endif
+  }
+
+  /** \brief Set the input cloud to be used.
+   * \param[in] cloud the input cloud to be used by the handler
+   */
+  virtual void setInputCloud(const PointCloudConstPtr &cloud) {
+    cloud_ = cloud;
+  }
+
+ protected:
+  // Members derived from the base class
+  using PointCloudColorHandler<PointT>::cloud_;
+  using PointCloudColorHandler<PointT>::capable_;
+
+};
+
+}
 }
 
 #endif /* PCL_VISUALIZATION_BW_COLOR_HANDLER_H_ */

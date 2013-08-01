@@ -35,62 +35,65 @@
  *
  */
 
-
 #ifndef PCL_IO_RECORDER_H_
 #define PCL_IO_RECORDER_H_
 
 #include <pcl/io/grabber.h>
 #include <pcl/point_cloud.h>
 
-namespace pcl{
+namespace pcl {
 
 /** \brief Abstract base class for recording streams of data from a PCL grabber
-  * \author Adam Stambler <adasta@gmail.com>
-  * \ingroup io
-  */
-	class PCL_EXPORTS Recorder{
-	public:
-		Recorder(std::string description="" ): frame_idx_(0),
-									description_(description){}
-		virtual ~Recorder(){}
+ * \author Adam Stambler <adasta@gmail.com>
+ * \ingroup io
+ */
+class PCL_EXPORTS Recorder {
+ public:
+  Recorder(std::string description = "")
+      : frame_idx_(0),
+        description_(description) {
+  }
+  virtual ~Recorder() {
+  }
 
-    /** \brief Set input grabber.*/
-		virtual bool
-		setGrabber(const boost::shared_ptr<Grabber>& grabber)=0;
+  /** \brief Set input grabber.*/
+  virtual bool
+  setGrabber(const boost::shared_ptr<Grabber>& grabber)=0;
 
-    /** \brief set ouput directory and root name for frames*/
-		void
-		setOutput(std::string output_directory,
-					   std::string root_name , size_t frame_num=0);
+  /** \brief set ouput directory and root name for frames*/
+  void
+  setOutput(std::string output_directory, std::string root_name,
+            size_t frame_num = 0);
 
-    /** \brief returns true if grabber is valid*/
-		virtual bool
-		hasValidGrabber()=0;
+  /** \brief returns true if grabber is valid*/
+  virtual bool
+  hasValidGrabber()=0;
 
-    /** \brief returns true if recording published grabber frames*/
-		virtual bool
-		isRecording()=0;
+  /** \brief returns true if recording published grabber frames*/
+  virtual bool
+  isRecording()=0;
 
-    /** \brief starts recording grabber frames if valid grabber is set*/
-		virtual void
-		start()=0;
+  /** \brief starts recording grabber frames if valid grabber is set*/
+  virtual void
+  start()=0;
 
-    /** \brief stops recording frames*/
-		virtual void
-		stop()=0;
+  /** \brief stops recording frames*/
+  virtual void
+  stop()=0;
 
-    /** \brief returns description of recorder*/
-		std::string
-		getDescription(){return description_;}
-	protected:
-		std::string description_;
-		std::string movie_dir_;
-		std::string root_name_;
-		size_t frame_idx_;
+  /** \brief returns description of recorder*/
+  std::string getDescription() {
+    return description_;
+  }
+ protected:
+  std::string description_;
+  std::string movie_dir_;
+  std::string root_name_;
+  size_t frame_idx_;
 
-    /** \brief generates next file path for saving stream frame*/
-		std::string genNextFileName();
-	};
+  /** \brief generates next file path for saving stream frame*/
+  std::string genNextFileName();
+};
 
 }
 

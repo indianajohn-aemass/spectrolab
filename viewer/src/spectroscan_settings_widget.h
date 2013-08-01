@@ -46,23 +46,22 @@
 /*
  * \brief Widget for displaying and editing Spectroscan settings
  */
-class SpectroscanSettingsWidget : public QWidget
-{
-  Q_OBJECT
-  public:
-    SpectroscanSettingsWidget (pcl::SpectroscanSettings* settings);
+class SpectroscanSettingsWidget : public QWidget {
+Q_OBJECT
+ public:
+  SpectroscanSettingsWidget(pcl::SpectroscanSettings* settings);
 
-  signals:
-    void settingsApplied ();
+signals:
+  void settingsApplied();
 
-  private slots:
-    void applySettings ();
-    void save ();
-    void load ();
+ private slots:
+  void applySettings();
+  void save();
+  void load();
 
-  protected:
-    Ui_SpectroscanSettings ui_;
-    pcl::SpectroscanSettings* settings_;
+ protected:
+  Ui_SpectroscanSettings ui_;
+  pcl::SpectroscanSettings* settings_;
 };
 
 #endif /* SPECTROSCAN_SETTINGS_WIDGET_H_ */
