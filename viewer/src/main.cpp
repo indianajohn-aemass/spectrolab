@@ -8,13 +8,11 @@
 namespace po = boost::program_options;
 
 int main(int argc, char** argv) {
-  po::options_description desc("./spectrolab_viewer <input> ");
+  po::options_description desc("./spectrolab_viewer  ");
   std::string infile;
-  std::string ofile;
 
   desc.add_options()
       ("help", "produce help message")
-      ("input,i", po::value<std::string>(&infile), "input point cloud or directory ")
       ;
 
   po::positional_options_description p;

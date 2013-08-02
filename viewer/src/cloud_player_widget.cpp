@@ -14,6 +14,7 @@
 #include <pcl/io/pcd_recorder.h>
 
 #include <vtkRenderWindow.h>
+#include <vtkCamera.h>
 
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent,
                                                          Qt::WindowFlags f)
@@ -213,7 +214,9 @@ void pcl::visualization::CloudPlayerWidget::resetView() {
 #endif
   this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()
       ->ResetCameraClippingRange();
+  this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera()->SetFocalPoint(0,0,10);
   this->ui_.qvtkwidget->GetRenderWindow()->Render();
+
 }
 
 void pcl::visualization::CloudPlayerWidget::enablePlayback() {
