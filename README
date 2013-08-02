@@ -32,3 +32,19 @@ To test the scanner, you can grab a single frame using
 sudo ./spectroscan3d_grabpcd  frame
 
 
+
+== Spectrolab Viewer ==
+
+The Spectrolab Viewer is 3D point cloud viewer which can load .pcd 
+(point cloud data) and .ssi (Spectrolab Scan Images).  The point clouds 
+can be colored by many different renderes for optimal viewing. Choose renders
+by using the viewer's play button menu.  Additionally, 
+the viewer can open directories of scans and play them back as a streaming
+movie.
+
+The viewer also doubles as a live streaming interface to the Spectroscan
+3D lidar camera.  Use the Spectroscan3D menu to connect and interact with
+the scanner. 
+
+To record Spectroscan3D movies, simply use the record button on the player.
+Movies can be recorded as PCD or SSI files.
