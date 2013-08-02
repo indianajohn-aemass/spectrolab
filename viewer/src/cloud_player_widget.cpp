@@ -16,6 +16,51 @@
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
 
+std::string interface_help =
+    "| Help:\n"
+        "-------\n"
+        "          j, J   : take a .PNG snapshot of the current window view\n"
+        "          c, C   : display current camera/window parameters\n"
+        "          f, F   : fly to point mode\n"
+        "\n"
+        "           +/-   : increment/decrement current point cloud point size \n"
+        "     +/- [+ ALT] : zoom in/out \n"
+        "\n"
+        "    r, R [+ ALT] : reset camera [to viewpoint = {0, 0, 0} -> center_{x, y, z}]\n"
+        "\n"
+        "    ALT + s, S   : turn stereo mode on/off\n";
+
+/*
+ * CloudPlayerInteractorStyle
+ * Modifies the help menu of the PCL Interactor style to only show keyboard commands
+ * that are valid for the cloud player.
+ */
+class CloudPlayerInteractorStyle :
+    public pcl::visualization::PCLVisualizerInteractorStyle {
+ public:
+  virtual void OnKeyDown() {
+    if (Interactor->GetKeyCode() == 'g')
+      return;
+    if (Interactor->GetKeyCode() == 'G')
+      return;
+    if (Interactor->GetKeyCode() == 'u')
+      return;
+    if (Interactor->GetKeyCode() == 'U')
+      return;
+    if (Interactor->GetKeyCode() == 'l')
+      return;
+    if (Interactor->GetKeyCode() == 'L')
+      return;
+    if ((Interactor->GetKeyCode() == 'h')
+        || (Interactor->GetKeyCode() == 'H')) {
+      pcl::console::print_info(interface_help.c_str());
+      return;
+    }
+    pcl::visualization::PCLVisualizerInteractorStyle::OnKeyDown();
+  }
+
+};
+
 pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent,
                                                          Qt::WindowFlags f)
     : QWidget(parent, f),
@@ -33,7 +78,10 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent,
   this->ui_.button_play_pause->setPopupMode(QToolButton::MenuButtonPopup);
   this->ui_.button_play_pause->setMenu(new QMenu);
 
-  pcl_visualizer_ = new pcl::visualization::PCLVisualizer("", false);
+  int argc = 0;
+  char** argv=NULL;
+  pcl_visualizer_ = new pcl::visualization::PCLVisualizer(
+      argc, argv, std::string(), new CloudPlayerInteractorStyle(), false);
   ui_.qvtkwidget->SetRenderWindow(pcl_visualizer_->getRenderWindow());
   pcl_visualizer_->setupInteractor(ui_.qvtkwidget->GetInteractor(),
                                    ui_.qvtkwidget->GetRenderWindow());
@@ -214,7 +262,8 @@ void pcl::visualization::CloudPlayerWidget::resetView() {
 #endif
   this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()
       ->ResetCameraClippingRange();
-  this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera()->SetFocalPoint(0,0,10);
+  this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()
+      ->GetActiveCamera()->SetFocalPoint(0, 0, 10);
   this->ui_.qvtkwidget->GetRenderWindow()->Render();
 
 }
