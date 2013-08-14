@@ -48,3 +48,9 @@ the scanner.
 
 To record Spectroscan3D movies, simply use the record button on the player.
 Movies can be recorded as PCD or SSI files.
+
+
+== Example Programs ==
+The tools directory contains basic programs demonstrating the driver's 
+API.  There are example programs for grabing point clouds, save intensity
+images, and creating a simple streaming viewer for your Spectroscan 3D.
