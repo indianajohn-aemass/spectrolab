@@ -1,5 +1,8 @@
-
-
+/*
+ * spectrolab3d_frame_to_png.cpp
+ * Render a Spectroscan3D frame to as a png image using frame intensity 
+ * data.
+ */ 
 #include <iostream>
 #include <boost/program_options.hpp>
 

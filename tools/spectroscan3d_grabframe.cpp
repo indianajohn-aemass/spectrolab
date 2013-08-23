@@ -1,4 +1,9 @@
-
+/*
+ * spectroscan3d_grabframe.cpp
+ * 
+ * This program demonstrates how to grab ssi binary frames from the
+ * Spectroscan 3D and save them to disc. 
+ */
 
 #include <iostream>
 #include <boost/program_options.hpp>
@@ -18,7 +23,7 @@ void savecloud( const spectrolab::Scan::ConstPtr& frame, time_t scan_time ){
 	boost::filesystem::path path = file_root;
 
 	char fname[300];
-	sprintf(fname, "%s_%04d.bin", path.c_str(),count);
+	sprintf(fname, "%s_%04ul.ssi", path.c_str(),count);
 	std::cout << "Saving to " << fname << " \n";
 	frame->save(fname);
 	count++;
@@ -29,7 +34,7 @@ void savecloud( const spectrolab::Scan::ConstPtr& frame, time_t scan_time ){
 
 
 int main(int argc, char** argv){
-  po::options_description desc("./spectroscan3d_grabframe  frame_root_name \n Save binary scan images.  Each frame is frame_root_name_NUMBER.bin\n");
+  po::options_description desc("./spectroscan3d_grabframe  frame_root_name \n Save binary scan images.  Each frame is frame_root_name_NUMBER.ssi\n");
 
   desc.add_options()
     ("help", "produce help message")
@@ -57,9 +62,17 @@ int main(int argc, char** argv){
    return 0;
  }
 
- pcl::Spectroscan3DGrabber grabber;
- boost::signals2::connection c= grabber.registerCallback<spectrolab::SpectroScan3D::sig_camera_cb>(  savecloud  );
- grabber.start();
+pcl::Spectroscan3DGrabber* grabber;
+try{
+	grabber= new pcl::Spectroscan3DGrabber;
+}
+catch( pcl::IOException& e) {
+	std::cout << "Failed to open Spectroscan 3d Grabber\n " << e.what();
+	std::cout <<"\n";
+	return 1;
+}
+ boost::signals2::connection c= grabber->registerCallback<spectrolab::SpectroScan3D::sig_camera_cb>(  savecloud  );
+ grabber->start();
 
  while(1){	boost::this_thread::sleep(boost::posix_time::seconds(1));}
 

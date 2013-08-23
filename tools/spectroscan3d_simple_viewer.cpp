@@ -1,5 +1,8 @@
-
-
+/*
+ * spectroscan3d_simple_viewer.cpp
+ * Simple program to stream point cloud data from a Spectroscan3D to
+ * a 3D viewer.
+ */
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <pcl/point_types.h>
@@ -108,6 +111,7 @@ int main(int argc, char** argv){
    return 0;
  }
 
+
  pcl::Spectroscan3DGrabber* camera;
  try{
 	 camera = new pcl::Spectroscan3DGrabber;
@@ -117,6 +121,9 @@ int main(int argc, char** argv){
 	 std::cout << e.what() << "\n";
 	 return -1;
  }
+ 
+ range_coloring = vm.count("range");
+ 
  SimpleViewer viewer;
 
  camera->registerCallback<pcl::Spectroscan3DGrabber::sig_cb_xyzi_cloud>(

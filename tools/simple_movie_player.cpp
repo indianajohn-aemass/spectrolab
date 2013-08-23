@@ -1,5 +1,8 @@
-
-
+/*
+ * simple_movie_player.cpp
+ * Sample program for replaying a directory of Spectroscan3D binary 
+ * frames (*.ssi).  
+ */
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <pcl/point_types.h>
@@ -87,8 +90,8 @@ int main(int argc, char** argv){
   float frame_rate;
   desc.add_options()
     ("help", "produce help message")
-    ("input,i",po::value<std::string>(&infile)->required(), "input frame ")
-    ("frame_rate,f",po::value<float>(&frame_rate)->default_value(5), "input frame ")
+    ("input,i",po::value<std::string>(&infile)->required(), "frame in movie directory ")
+    ("frame_rate,f",po::value<float>(&frame_rate)->default_value(5), "set frame rate ")
     ("range,r", "color point cloud by range")
           ;
   po::positional_options_description p;
@@ -110,8 +113,10 @@ int main(int argc, char** argv){
    std::cout << desc << std::endl;
    return 0;
  }
- SimpleViewer viewer;
+ 
  range_coloring = vm.count("range");
+ 
+ SimpleViewer viewer;
  pcl::MovieGrabber mgrabber(infile, ".pcd");
  mgrabber.setFramesPerSecond(frame_rate);
 

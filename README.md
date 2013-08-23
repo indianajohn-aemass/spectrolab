@@ -1,22 +1,35 @@
-PCL Spectrolab Code Sprint
+PCL Spectrolab
+===========================
 by Adam Stambler
 
-This repository contains the code the Spectrolab PCL code sprint.
-
-There will be a driver for the Spectrolab lidar camera along with a 3D 
-viewer for capturing  and displaying data from the camera.
+This repository contains the code from the 
+[Spectrolab PCL code sprint](  www.pointclouds.org/blog/spectrolab/ ).
+Development of this software was sponsored by [Spectrolab]( www.spectrolab.com/) and 
+[Open Perception](www.openperception.org).  It contains a [Spectroscan 3D]
+(http://www.spectrolab.com/sensors/pdfs/products/SPECTROSCAN3D_RevA%20071912.pdf) driver,
+PCL Grabber, and 3D Viewer Viewer.
 
 The latest version of this repository can be found on :
 https://github.com/adasta/spectrolab
 
+## Installation
 
-== Setup ==
+The software requires PCL and Qt4.  You can find precompiled binaries [here](http://pointclouds.org/downloads/)
+To compile, go into the pcl_spectrolab repository directory
+
+	mkdir build
+	cd buid
+	cmake .. & make
+
+##Setup
 To use the software, the computer must be connected to the scanner
 such that the computer has the IP address 192.168.0.121.  You need
 to specify how to find the scanner using arp
 
-Unix  :  sudo arp -s 192.168.0.27 00:0F:CC:23:00:01
-Windows  :   arp -s 192.168.0.27  00-0F-CC-23-00-01
+Unix  :
+	sudo arp -s 192.168.0.27 00:0F:CC:23:00:01
+Windows  : 
+	arp -s 192.168.0.27  00-0F-CC-23-00-01
 
 This needs to be done everytime the system is started.
 
@@ -25,15 +38,14 @@ or root user because the system uses low port numbers.
 
 To view a live point cloud stream, record the stream, or play back a saved stream:
 
-sudo ./spectrolab_viewer
+	sudo ./spectrolab_viewer
 
 To test the scanner, you can grab a single frame using 
 
-sudo ./spectroscan3d_grabpcd  frame
+	sudo ./spectroscan3d_grabpcd  frame
 
 
-
-== Spectrolab Viewer ==
+##Spectrolab Viewer 
 
 The Spectrolab Viewer is 3D point cloud viewer which can load .pcd 
 (point cloud data) and .ssi (Spectrolab Scan Images).  The point clouds 
@@ -49,8 +61,19 @@ the scanner.
 To record Spectroscan3D movies, simply use the record button on the player.
 Movies can be recorded as PCD or SSI files.
 
+	sudo ./spectrolab_viewer
 
-== Example Programs ==
+
+##Example Programs 
 The tools directory contains basic programs demonstrating the driver's 
-API.  There are example programs for grabing point clouds, save intensity
+API.  Use these programs to learn how to use this repository.
+There are example programs for grabing point clouds, save intensity
 images, and creating a simple streaming viewer for your Spectroscan 3D.
+
+* spectroscan3d_grabframe.cpp -  grab a frame and save as an ssi binary
+* spectroscan3d_grabpcd.cpp   -  grab a frame and save as a pcd file
+* spectroscan3d_frame_to_png.cpp - convert a Spectroscan 3D ssi binary to a png intensity image
+* simple_movie_player.cpp -  play a directory of *.ssi binary files in a 3D viewer
+* spectroscan3d_simple_viewer.cpp - stream a point cloud from a Spectroscan 3D to a 3D viewer
+ 
+ 

@@ -1,5 +1,7 @@
-
-
+/*
+ * spectroscan3d_grabpcd.cpp
+ * Demonstrates using the Spectroscan 3D grabber and saving a pcd file.
+ */
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -30,17 +32,15 @@ void savecloud( const pcl::PointCloud<pcl::PointXYZI>::ConstPtr& cloud ){
 
 
 int main(int argc, char** argv){
-  po::options_description desc("./spectroscan3d_grabpcd ");
+  po::options_description desc("./spectroscan3d_grabpcd root_output_name");
 
   desc.add_options()
     ("help", "produce help message")
-    //("input,i",po::value<std::string>(&infile)->required(), "input point cloud ")
     ("output,o",po::value<std::string>(&file_root)->required(), "output pcd ")
     ("number,n",po::value<uint32_t>(&number_to_grab)->default_value(1), "number of pcd to grab")
     ;
 
   po::positional_options_description p;
- // p.add("input",1);
   p.add("output",1);
 
   po::variables_map vm;
