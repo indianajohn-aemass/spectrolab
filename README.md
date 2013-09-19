@@ -7,10 +7,10 @@ This repository contains the code from the
 Development of this software was sponsored by [Spectrolab]( www.spectrolab.com/) and 
 [Open Perception](www.openperception.org).  It contains a [Spectroscan 3D]
 (http://www.spectrolab.com/sensors/pdfs/products/SPECTROSCAN3D_RevA%20071912.pdf) driver,
-PCL Grabber, and 3D Viewer Viewer.
+PCL Grabber, and 3D Viewer.
 
 The latest version of this repository can be found on :
-https://github.com/adasta/spectrolab
+https://github.com/SpectrolabInc/spectrolab
 
 ## Installation
 
