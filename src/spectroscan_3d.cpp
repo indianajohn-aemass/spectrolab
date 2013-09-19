@@ -40,6 +40,8 @@
 #include <iostream>
 #include <ctime>
 
+#define MS_DELAY 500
+
 const int spectrolab::SpectroScan3D::IMG_RX_PORT_COMPUTER = 4002;
 const int spectrolab::SpectroScan3D::CMD_RX_PORT_COMPUTER = 4000;
 const int spectrolab::SpectroScan3D::CMD_TX_PORT_SCANNER = 4950;
@@ -136,6 +138,7 @@ spectrolab::SpectroScan3D::sendFirmwareCmd (FirmwareCommands cmd)
   uint8_t buff[1];
   buff[0] = cmd;
   send (buff, 1);
+  Sleep(MS_DELAY);
 }
 
 bool
@@ -148,14 +151,14 @@ spectrolab::SpectroScan3D::start ()
   if (sys_id != FIRMWARE_VERSION)
     return false;
 
-  sendFirmwareCmd (HIGH_VOLTAGE_ON);
-  sendFirmwareCmd (MIRROR_SCAN_ON);
-  sendFirmwareCmd (LASER_HIGH_POWER_ON);
-  sendFirmwareCmd (LASER_TEC_ON);
-  sendFirmwareCmd (LASER_OUTPUT_ENABLE);
-  sendFirmwareCmd (RX_OFFSET_VOLTAGE_REMOVE);
-  sendFirmwareCmd (LASER_OUTPUT_ON);
-  sendFirmwareCmd (DATA_ACQUISITION_ON);
+  sendFirmwareCmd (HIGH_VOLTAGE_ON);			// 0x3A
+  sendFirmwareCmd (MIRROR_SCAN_ON);				// 0x21
+  sendFirmwareCmd (LASER_HIGH_POWER_ON);		// 0x1A
+  sendFirmwareCmd (LASER_TEC_ON);				// 0x15
+  sendFirmwareCmd (LASER_OUTPUT_ENABLE);		// 0x17
+  sendFirmwareCmd (DATA_ACQUISITION_ON);		// 0x11
+  sendFirmwareCmd (RX_OFFSET_VOLTAGE_REMOVE);	// 0x3F
+  sendFirmwareCmd (LASER_OUTPUT_ON);			// 0x12
 
   running_ = true;
   proc_thread_ = boost::thread (
