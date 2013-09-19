@@ -39,82 +39,46 @@ CMDInterfaceWidget::CMDInterfaceWidget(
       QWidget(parent) {
   ui_.setupUi(this);
 
-  addSpectrolabAction(CMDAction(SpectroScan3D::RESET, "Reset"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::MIRROR_SCAN_ON, "Mirror Scan On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::MIRROR_SCAN_OFF, "Mirror Scan Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_HIGH_POWER_ON, "Laser high power on"));
-  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_TEC_ON, "Laser Tec On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_OUTPUT_ENABLE, "Laser Output Enable"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_OUTPUT_ON, "Laser Output On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_OUTPUT_OFF, "Laser Output Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_TEC_OFF, "Laser Tech Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_POWER_SUPPLY_OFF,
-                "Laser Power Supply Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_LOW_POWER_ON, "Laser Low power on"));
-  addSpectrolabAction(CMDAction(SpectroScan3D::LED1_TOGGLE, "LED 1 Toggle"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_STATUS_DISPLAY, "Laser Status Display"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::SYSTEM_STATUS_DISPLAY, "System Status Display"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::INTERPOLATOR_ON, "Interpolator On On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::INTERPOLATOR_OFF, "Interpolator Off"));
-  addSpectrolabAction(CMDAction(SpectroScan3D::ADC_CALIBRATE, "ADC Calibrate"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::REFERENCE_PULSE_ON, "Reference Pulse On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::REFERENCE_PULSE_OFF, "Reference Pulse Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::HIGH_VOLTAGE_ON, "High Voltage On"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::HIGH_VOLTAGE_OFF, "High Voltage Off"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::RX_OFFSET_VOLTAGE_REMOVE,
-                "RX Offset Voltage Remove"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::RESET, "Reset 0x10"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::HIGH_VOLTAGE_ON, "High Voltage On 0x3A"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::MIRROR_SCAN_ON, "Mirror Scan On 0x21"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_HIGH_POWER_ON, "Laser high power 0x1A"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_TEC_ON, "Laser Tec On 0x15"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_OUTPUT_ENABLE, "Laser Output Enable 0x17"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::DATA_ACQUISITION_ON, "Data Acquisition On 0x11"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::RX_OFFSET_VOLTAGE_REMOVE, "RX Offset Voltage Remove 0x3F"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_OUTPUT_ON, "Laser Output On 0x12"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_OUTPUT_OFF, "Laser Output Off 0x18"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_TEC_OFF, "Laser TEC Off 0x16"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_POWER_SUPPLY_OFF, "Laser Power Supply Off 0x13"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_LOW_POWER_ON, "Laser Low power on 0x19"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LED1_TOGGLE, "LED 1 Toggle 0x1F"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_STATUS_DISPLAY, "Laser Status Display 0x2D"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::SYSTEM_STATUS_DISPLAY, "System Status Display 0x2E"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::INTERPOLATOR_ON, "Interpolator On On 0x31"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::INTERPOLATOR_OFF, "Interpolator Off 0x39"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::ADC_CALIBRATE, "ADC Calibrate 0x36"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::REFERENCE_PULSE_ON, "Reference Pulse On 0x37"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::REFERENCE_PULSE_OFF, "Reference Pulse Off 0x38"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::HIGH_VOLTAGE_OFF, "High Voltage Off 0x3B"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::MIRROR_SCAN_OFF, "Mirror Scan Off 0x22")); 
 
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LASER_STATUS_READ, "Read Laser Status"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::SYSTEM_STATUS_READ, "Read System Status"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::SYSTEM_ID_READ, "Read System ID"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::IN_FIFO_DELAY_READ, "Read In Fifo"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LASER_STATUS_READ, "Read Laser Status 0x25"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::SYSTEM_STATUS_READ, "Read System Status 0x26"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::SYSTEM_ID_READ, "Read System ID 0x27"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::IN_FIFO_DELAY_READ, "Read Fifo Delay 0x30"));
 
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::ODD_SYNC_DELAY_WRITE, "Write odd sync delay"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::EVEN_SYNC_DELAY_WRITE, "Wrote even sync delay"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::HIGH_GAIN_AMPLITUDE_THRESHOLD_WRITE,
-                "Write high gain amplitude threshold"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::HIGH_GAIN_AMPLITUDE_SATURATE_WRITE,
-                "Write high gain amplitude saturate"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LOW_GAIN_AMPLITUDE_THRESHOLD_WRITE,
-                "Write low gain amplitude threshold"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::LOW_GAIN_AMPLITUDE_SATURATE_WRITE,
-                "Write low gain amplitude saturate"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::IN_FIFO_DELAY_WRITE, "Write in FIFO delay"));
-  addSpectrolabAction(
-      CMDAction(SpectroScan3D::TARGET_SELECT_WRITE, "Write Target Select"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::ODD_SYNC_DELAY_WRITE, "Write odd sync delay 0x23"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::EVEN_SYNC_DELAY_WRITE, "Write even sync delay 0x2F"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::HIGH_GAIN_AMPLITUDE_THRESHOLD_WRITE, "Write high gain amplitude threshold 0x24"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::HIGH_GAIN_AMPLITUDE_SATURATE_WRITE, "Write high gain amplitude saturate 0x34"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LOW_GAIN_AMPLITUDE_THRESHOLD_WRITE, "Write low gain amplitude threshold 0x28"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::LOW_GAIN_AMPLITUDE_SATURATE_WRITE, "Write low gain amplitude saturate 0x35"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::IN_FIFO_DELAY_WRITE, "Write FIFO delay 0x2A"));
+  addSpectrolabAction(CMDAction(SpectroScan3D::TARGET_SELECT_WRITE, "Write Target Select 0x33"));
 
   connect(ui_.button_send, SIGNAL(clicked()), this, SLOT(sendCMD() ));
-  connect(ui_.combo_box_cmds, SIGNAL(currentIndexChanged(int)), this,
-          SLOT(cmdSelected(int)));
+  connect(ui_.combo_box_cmds, SIGNAL(currentIndexChanged(int)), this, SLOT(cmdSelected(int)));
   connect(ui_.line_edit_cmd, SIGNAL(returnPressed()), this, SLOT(sendCMD() ));
 }
 
