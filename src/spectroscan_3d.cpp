@@ -138,7 +138,7 @@ spectrolab::SpectroScan3D::sendFirmwareCmd (FirmwareCommands cmd)
   uint8_t buff[1];
   buff[0] = cmd;
   send (buff, 1);
-  Sleep(MS_DELAY);
+  boost::this_thread::sleep (boost::posix_time::milliseconds (MS_DELAY));
 }
 
 bool
