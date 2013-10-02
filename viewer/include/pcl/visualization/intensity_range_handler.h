@@ -129,7 +129,12 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
       double icolor[3], rcolor[3];
       range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
 	  brightness[cp] = (cloud_->points[cp].intensity)*5;
-      for( int k=0; k<3; k++) colors[j*3+k ] = 255*brightness[cp]*rcolor[k];
+      for( int k=0; k<3; k++){ 
+		  double val = 255*(brightness[cp]*rcolor[k]);
+		  if(val > 255)
+			  val = 255;
+		  colors[j*3+k] = val; 
+	  }
 	  j++;
     }
     reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray(colors,
