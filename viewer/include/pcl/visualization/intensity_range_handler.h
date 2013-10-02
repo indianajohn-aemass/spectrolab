@@ -117,8 +117,9 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
     intensity_lookup_table->Build();
 
     unsigned char* colors = new unsigned char[nr_points * 3];
-
-    // Color every point
+	double* brightness = new double[nr_points];
+    
+	// Color every point
     uint32_t j = 0;
     for (vtkIdType cp = 0; cp < nr_points; ++cp) {
       if (pcl_isnan( (*cloud_)[cp].z)) {
@@ -127,10 +128,9 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
 
       double icolor[3], rcolor[3];
       range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
-      intensity_lookup_table->GetColor((*cloud_)[cp].intensity, icolor);
-
-      for( int k=0; k<3; k++) colors[j*3+k ] = 255*(icolor[k]*0.4+ 0.6*rcolor[k]);
-      j++;
+	  brightness[cp] = (cloud_->points[cp].intensity)*5;
+      for( int k=0; k<3; k++) colors[j*3+k ] = 255*brightness[cp]*rcolor[k];
+	  j++;
     }
     reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray(colors,
                                                                    3 * j, 0);
