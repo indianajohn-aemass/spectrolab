@@ -42,6 +42,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkLookupTable.h>
+#include <vtkMath.h>	// rm
 #include <cmath>
 
 namespace pcl {
@@ -128,11 +129,16 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
 
       double icolor[3], rcolor[3];
       range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
-	  brightness[cp] = (cloud_->points[cp].intensity)*5;
-      for( int k=0; k<3; k++){ 
-		  double val = 255*(brightness[cp]*rcolor[k]);
+	  brightness[cp] = (cloud_->points[cp].intensity);
+
+	  double* hsv_color = vtkMath::RGBToHSV(rcolor); // rm convert rgb to hsv
+	  hsv_color[2] = brightness[cp] + 0.25;  // rm assign brightness
+	  if(hsv_color[2] > 1.0) hsv_color[2] = 1.0;	// clamp brightness at 1.0 maximum
+	  vtkMath::HSVToRGB(hsv_color, rcolor);	// rm convert hsv back to rgb
+      for(int k=0; k<3; k++){ 
+		  double val = 255*rcolor[k]; // rm
 		  if(val > 255)
-			  val = 255;
+		    val = 255;
 		  colors[j*3+k] = val; 
 	  }
 	  j++;

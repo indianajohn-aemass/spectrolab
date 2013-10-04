@@ -49,9 +49,12 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem.hpp>
 
+#define OVERSCAN 64	//rm # of total overscan pixels (non-image) for a row
+#define X_SCAN_AMPL 20 // rm amplitude of sinusoidal scan pattern in the x-axis (in degrees)
+
 pcl::SpectroscanSettings::SpectroscanSettings () :
     range_resolution (0.00625), range_offset (0), x_angle_delta (
-        0.1385 / 180 * M_PI), y_angle_delta (.209 / 180 * M_PI), min_range (0),
+        0.15625 / 180 * M_PI), y_angle_delta (0.160 / 180 * M_PI), min_range (0),
         max_range (20)
 {
 }
@@ -123,6 +126,7 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
 
   float mx = scan.cols () / 2.0f;
   float my = scan.rows () / 2.0f;
+  float A = X_SCAN_AMPL/(sin(M_PI*mx/(2*mx + OVERSCAN)))*M_PI/180;	// rm (in radians)
 
   for (size_t r = 0, idx = 0; r < scan.rows (); r++)
   {
@@ -138,8 +142,10 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
         continue;
       }
       cloud[idx].z = range;
-      float dx = c - mx;
-      cloud[idx].x = sin (dx * settings.x_angle_delta) * range;
+      //float dx = c - mx;
+	  float x_angle = A*sin(M_PI*(c - mx)/(scan.cols () + OVERSCAN));	// rm (in radians)
+      //cloud[idx].x = sin (dx * settings.x_angle_delta) * range;
+	  cloud[idx].x = sin (x_angle) * range;		// rm
       float dy = r - my;
       cloud[idx].y = sin (dy * settings.y_angle_delta) * range;
 
