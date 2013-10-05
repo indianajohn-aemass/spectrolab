@@ -39,6 +39,11 @@
 #define PCL_VISUALIZATION_BW_COLOR_HANDLER_H_
 
 #include <pcl/visualization/point_cloud_handlers.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkFloatArray.h>
+#include <vtkLookupTable.h>
+#include <vtkMath.h>	// rm
+#include <cmath>
 
 namespace pcl {
 namespace visualization {
@@ -48,15 +53,14 @@ namespace visualization {
  * \ingroup visualization
  */
 template<typename PointT>
-class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<
-    PointT> {
+class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<PointT> {
  public:
   typedef pcl::PointCloud<PointT> PointCloud;
   typedef typename PointCloud::Ptr PointCloudPtr;
   typedef typename PointCloud::ConstPtr PointCloudConstPtr;
 
-  typedef boost::shared_ptr<PointCloudColorHandler<PointT> > Ptr;
-  typedef boost::shared_ptr<const PointCloudColorHandler<PointT> > ConstPtr;
+  typedef boost::shared_ptr<PointCloudIntensityHandler<PointT> > Ptr;
+  typedef boost::shared_ptr<const PointCloudIntensityHandler<PointT> > ConstPtr;
 
   /** \brief Constructor. */
   PointCloudIntensityHandler(const PointCloudConstPtr &cloud)
@@ -77,6 +81,7 @@ class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<
   virtual std::string getFieldName() const {
     return "intensity";
   }
+  ;
 
   /** \brief Obtain the actual color for the input dataset as vtk scalars.
    * \param[out] scalars the output scalars containing the color for the dataset
@@ -102,23 +107,44 @@ class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<
     reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetNumberOfTuples(
         nr_points);
 
-    // Get a random color
+    vtkSmartPointer<vtkLookupTable> range_lookup_table = vtkSmartPointer<
+        vtkLookupTable>::New();
+    range_lookup_table->SetTableRange(0.0, 20.0);
+    range_lookup_table->Build();
+
+    vtkSmartPointer<vtkLookupTable> intensity_lookup_table = vtkSmartPointer<
+        vtkLookupTable>::New();
+    intensity_lookup_table->SetTableRange(0.0, 1);
+    intensity_lookup_table->Build();
+
     unsigned char* colors = new unsigned char[nr_points * 3];
-    unsigned char r, g, b;
-    // Color every point
+	double* brightness = new double[nr_points];
+    
+	// Color every point
+    uint32_t j = 0;
     for (vtkIdType cp = 0; cp < nr_points; ++cp) {
-      float val = cloud_->points[cp].intensity * 255;  // + 50;
-      if (val > 255)
-        val = 255;
-      colors[cp * 3 + 0] = val;
-      colors[cp * 3 + 1] = val;
-      colors[cp * 3 + 2] = val;
+      if (pcl_isnan( (*cloud_)[cp].z)) {
+        continue;
+      }
+
+      //double icolor[3], rcolor[3];
+      //range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
+	  brightness[cp] = (cloud_->points[cp].intensity);
+
+	  double val = 255*(brightness[cp] + 0.25); 
+	  colors[j*3 + 0] = val;
+	  colors[j*3 + 1] = val;
+	  colors[j*3 + 2] = val;
+	  
+	  j++;
     }
-    reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray(
-        colors, 3 * nr_points, 0);
+    reinterpret_cast<vtkUnsignedCharArray*>(&(*scalars))->SetArray(colors,
+                                                                   3 * j, 0);
 
 #if ( ( PCL_MAJOR_VERSION >=1) && (  PCL_MINOR_VERSION > 6) )
     return true;
+#else
+    return;
 #endif
   }
 

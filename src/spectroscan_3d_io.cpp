@@ -51,10 +51,11 @@
 
 #define OVERSCAN 64	//rm # of total overscan pixels (non-image) for a row
 #define X_SCAN_AMPL 20 // rm amplitude of sinusoidal scan pattern in the x-axis (in degrees)
+#define YANGLE_CONST 15*M_PI/180	// input beam angle of 15deg to scan mirror normal causes foreshortening of x-axis scan
 
 pcl::SpectroscanSettings::SpectroscanSettings () :
     range_resolution (0.00625), range_offset (0), x_angle_delta (
-        0.15625 / 180 * M_PI), y_angle_delta (0.160 / 180 * M_PI), min_range (0),
+        0.15625 / 180 * M_PI), y_angle_delta (0.170 / 180 * M_PI), min_range (0),
         max_range (20)
 {
 }
@@ -142,12 +143,14 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
         continue;
       }
       cloud[idx].z = range;
-      //float dx = c - mx;
-	  float x_angle = A*sin(M_PI*(c - mx)/(scan.cols () + OVERSCAN));	// rm (in radians)
-      //cloud[idx].x = sin (dx * settings.x_angle_delta) * range;
-	  cloud[idx].x = sin (x_angle) * range;		// rm
+      float dx = c - mx;
       float dy = r - my;
-      cloud[idx].y = sin (dy * settings.y_angle_delta) * range;
+
+	  float y_angle = dy * settings.y_angle_delta;
+	  float x_angle = A*sin(M_PI*dx/(scan.cols () + OVERSCAN))*cos(YANGLE_CONST - y_angle/4);	// correct sinusoidal scan pattern and input angle foreshortening
+	  
+	  cloud[idx].x = sin (x_angle) * range;
+      cloud[idx].y = sin (y_angle) * range;	  
 
       float amp = ((float) scan[idx].amplitude);
       cloud[idx].intensity = amp / 1024.0f;
