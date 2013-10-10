@@ -16,6 +16,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
 
+float pcl::visualization::CloudPlayerWidget::br_val;
+
 std::string interface_help =
     "| Help:\n"
         "-------\n"
@@ -101,6 +103,8 @@ pcl::visualization::CloudPlayerWidget::CloudPlayerWidget(QWidget* parent,
                    SLOT(playPause()));
   QObject::connect(ui_.button_record, SIGNAL(clicked()), this, SLOT(record()));
   QObject::connect(ui_.button_home, SIGNAL(clicked()), this, SLOT(resetView()));
+  QObject::connect(ui_.intensity_bar, SIGNAL(valueChanged(int)), this,
+                   SLOT(readBrightSlider(int)));
 
   this->setWindowTitle("Cloud Player");
 
@@ -265,7 +269,6 @@ void pcl::visualization::CloudPlayerWidget::resetView() {
   this->ui_.qvtkwidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()
       ->GetActiveCamera()->SetFocalPoint(0, 0, 10);
   this->ui_.qvtkwidget->GetRenderWindow()->Render();
-
 }
 
 void pcl::visualization::CloudPlayerWidget::enablePlayback() {
@@ -341,3 +344,6 @@ void pcl::visualization::CloudPlayerWidget::progressUpdate(size_t frame_num,
   this->ui_.progress_bar->setValue(frame_num);
 }
 
+void pcl::visualization::CloudPlayerWidget::readBrightSlider(int val) {
+  br_val = float(val)/100.0;		// slider goes from = -100 to +100. Make it go from -1.0 to +1.0
+}

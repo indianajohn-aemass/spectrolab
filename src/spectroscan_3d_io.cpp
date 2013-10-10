@@ -49,8 +49,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem.hpp>
 
-#define OVERSCAN 64	//rm # of total overscan pixels (non-image) for a row
-#define X_SCAN_AMPL 20 // rm amplitude of sinusoidal scan pattern in the x-axis (in degrees)
+#define OVERSCAN 64	//# of total overscan pixels (non-image) for a row
+#define X_SCAN_AMPL 20 // amplitude of sinusoidal scan pattern in the x-axis (in degrees)
 #define YANGLE_CONST 15*M_PI/180	// input beam angle of 15deg to scan mirror normal causes foreshortening of x-axis scan
 
 pcl::SpectroscanSettings::SpectroscanSettings () :
@@ -127,13 +127,13 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
 
   float mx = scan.cols () / 2.0f;
   float my = scan.rows () / 2.0f;
-  float A = X_SCAN_AMPL/(sin(M_PI*mx/(2*mx + OVERSCAN)))*M_PI/180;	// rm (in radians)
+  float A = X_SCAN_AMPL/(sin(M_PI*mx/(2*mx + OVERSCAN)))*M_PI/180;	// scan amplitude (in radians)
 
   for (size_t r = 0, idx = 0; r < scan.rows (); r++)
   {
     for (size_t c = 0; c < scan.cols (); c++, idx++)
     {
-      double range = (float) scan[idx].range;  //scan(r,c).range ;
+      double range = (float) scan[idx].range;  
       range = settings.range_resolution * range + settings.range_offset;
       if ( (range > settings.max_range) || (range < settings.min_range))
       {

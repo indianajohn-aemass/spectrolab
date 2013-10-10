@@ -38,6 +38,7 @@
 #ifndef PCL_VISUALIZATION_BW_COLOR_HANDLER_H_
 #define PCL_VISUALIZATION_BW_COLOR_HANDLER_H_
 
+#include <pcl/visualization/cloud_player_widget.h>
 #include <pcl/visualization/point_cloud_handlers.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
@@ -119,7 +120,8 @@ class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<Poi
 
     unsigned char* colors = new unsigned char[nr_points * 3];
 	double* brightness = new double[nr_points];
-    
+    float bw = pcl::visualization::CloudPlayerWidget::br_val;
+
 	// Color every point
     uint32_t j = 0;
     for (vtkIdType cp = 0; cp < nr_points; ++cp) {
@@ -131,7 +133,7 @@ class PCL_EXPORTS PointCloudIntensityHandler : public PointCloudColorHandler<Poi
       //range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
 	  brightness[cp] = (cloud_->points[cp].intensity);
 
-	  double val = 255*(brightness[cp] + 0.25); 
+	  double val = 255*(brightness[cp] + bw); 
 	  colors[j*3 + 0] = val;
 	  colors[j*3 + 1] = val;
 	  colors[j*3 + 2] = val;
