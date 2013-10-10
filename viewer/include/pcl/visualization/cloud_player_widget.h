@@ -59,6 +59,7 @@ class CloudPlayerWidget : public QWidget {
 Q_OBJECT
 
  public:
+  static float br_val;
   CloudPlayerWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual ~CloudPlayerWidget();
 
@@ -120,8 +121,8 @@ Q_OBJECT
   void playPause();
   void sliderValueChanged(int val);
   void record();
-
-  void resetView();
+  void readBrightSlider(int val);
+  void resetView();	// rm
   void updateCloud();
  protected:
   void enablePlayback();

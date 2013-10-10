@@ -42,7 +42,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
 #include <vtkLookupTable.h>
-#include <vtkMath.h>	// rm
+#include <vtkMath.h>
 #include <cmath>
 
 namespace pcl {
@@ -83,6 +83,7 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
   }
   ;
 
+
   /** \brief Obtain the actual color for the input dataset as vtk scalars.
    * \param[out] scalars the output scalars containing the color for the dataset
    * \return true if the operation was successful (the handler is capable and
@@ -119,7 +120,8 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
 
     unsigned char* colors = new unsigned char[nr_points * 3];
 	double* brightness = new double[nr_points];
-    
+    float br = pcl::visualization::CloudPlayerWidget::br_val;
+
 	// Color every point
     uint32_t j = 0;
     for (vtkIdType cp = 0; cp < nr_points; ++cp) {
@@ -129,15 +131,19 @@ class PCL_EXPORTS PointCloudIZHandler : public PointCloudColorHandler<PointT> {
 
       double icolor[3], rcolor[3];
       range_lookup_table->GetColor((*cloud_)[cp].z, rcolor);
-	  brightness[cp] = (cloud_->points[cp].intensity)*5;
-	  //double* hsv_color = vtkMath::RGBToHSV(rcolor); // rm convert rgb to hsv
-	  //double pbright = hsv_color[2]*brightness[cp];  // rm assign brightness
-	  //rcolor = vtkMath::HSVToRGB(rcolor[0], rcolor[1], pbright);	// rm convert hsv back to rgb
+	  brightness[cp] = (cloud_->points[cp].intensity);
+
+	  double* hsv_color = vtkMath::RGBToHSV(rcolor); // convert rgb to hsv
+	  hsv_color[2] = brightness[cp] + br;  // assign brightness
+	  if(hsv_color[2] > 1.0) 
+		  hsv_color[2] = 1.0;	// clamp brightness at 1.0 maximum
+	  if(hsv_color[2] < 0.0) 
+		  hsv_color[2] = 0.0;	// clamp brightness at 0 mimimum	  
+	  vtkMath::HSVToRGB(hsv_color, rcolor);	// convert hsv back to rgb
       for(int k=0; k<3; k++){ 
-		  double val = 255*rcolor[k]; // rm
-		  //double val = 255*(brightness[cp]*rcolor[k]);
-		  //if(val > 255)
-		  //  val = 255;
+		  double val = 255*rcolor[k];
+		  if(val > 255)
+		    val = 255;
 		  colors[j*3+k] = val; 
 	  }
 	  j++;
