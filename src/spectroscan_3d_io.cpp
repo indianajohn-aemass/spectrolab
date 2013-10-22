@@ -142,16 +142,17 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
         cloud[idx].intensity = 0;
         continue;
       }
-      cloud[idx].z = range;
+      
       float dx = c - mx;
       float dy = r - my;
 
 	  float y_angle = dy * settings.y_angle_delta;
 	  float x_angle = A*sin(M_PI*dx/(scan.cols () + OVERSCAN))*cos(YANGLE_CONST - y_angle/4);	// correct sinusoidal scan pattern and input angle foreshortening
 	  
-	  cloud[idx].x = sin (x_angle) * range;
-      cloud[idx].y = sin (y_angle) * range;	  
-
+	  cloud[idx].x = range * cos(y_angle) * sin(x_angle);
+      cloud[idx].y = range * sin(y_angle);	  
+	  cloud[idx].z = range * cos(y_angle) * cos(x_angle);
+	  
       float amp = ((float) scan[idx].amplitude);
       cloud[idx].intensity = amp / 1024.0f;
     }
