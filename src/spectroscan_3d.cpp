@@ -148,7 +148,7 @@ spectrolab::SpectroScan3D::start ()
   sendFirmwareCmd (RESET);
   uint8_t sys_id;
   readFirmware (SYSTEM_ID_READ, sys_id);
-  if (sys_id != FIRMWARE_VERSION)
+  if (sys_id == 0)
     return false;
 
   sendFirmwareCmd (HIGH_VOLTAGE_ON);			// 0x3A
