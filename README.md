@@ -1,6 +1,5 @@
 PCL Spectrolab
 ===========================
-by Adam Stambler
 
 This repository contains the code from the 
 [Spectrolab PCL code sprint](  www.pointclouds.org/blog/spectrolab/ ).
@@ -14,7 +13,7 @@ https://github.com/SpectrolabInc/spectrolab
 
 ## Installation
 
-The software requires PCL and Qt4.  You can find precompiled binaries [here](http://pointclouds.org/downloads/)
+The software requires PCL 1.6.0 and Qt4.  Precompiled binaries can be found [here](http://pointclouds.org/downloads/)
 To compile, go into the pcl_spectrolab repository directory
 
 	mkdir build
