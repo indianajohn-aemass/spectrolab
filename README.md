@@ -2,7 +2,7 @@ PCL Spectrolab
 ===========================
 
 This repository contains the code from the 
-[Spectrolab PCL code sprint](  www.pointclouds.org/blog/spectrolab/ ).
+[Spectrolab PCL code sprint](www.pointclouds.org/blog/spectrolab/).
 Development of this software was sponsored by [Spectrolab]( www.spectrolab.com/) and 
 [Open Perception](www.openperception.org).  It contains a [Spectroscan 3D]
 (http://www.spectrolab.com/sensors/pdfs/products/SPECTROSCAN3D_RevA%20071912.pdf) driver,
