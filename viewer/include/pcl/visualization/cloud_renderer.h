@@ -45,6 +45,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 
 #include<pcl/point_types.h>
+#include <pcl/ros/conversions.h>
 #include <boost/thread.hpp>
 
 namespace pcl {
@@ -84,7 +85,7 @@ Q_OBJECT
 
   /* \brief manually set a new cloud rather than receiving it from the grabber */
   virtual void
-  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud)=0;
+  setCloud(const pcl::PCLPointCloud2::ConstPtr& cloud)=0;
 
   /* \brief tells the PCLVisualizer to render  a new point cloud if one is present */
   virtual void
@@ -119,7 +120,7 @@ class CloudRendererRange : public CloudRenderer {
   virtual void
   renderNew();
 
-  void setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud) {
+  void setCloud(const pcl::PCLPointCloud2::ConstPtr& cloud) {
     cloud_ = cloud;
   }
 
@@ -127,10 +128,10 @@ class CloudRendererRange : public CloudRenderer {
   std::string field_name_;
   boost::mutex cloud_mutex_;
 
-  sensor_msgs::PointCloud2::ConstPtr cloud_;
+  pcl::PCLPointCloud2::ConstPtr cloud_;
 
   bool valid_grabber_;
-  void grabberCB(const sensor_msgs::PointCloud2::ConstPtr& cloud);
+  void grabberCB(const pcl::PCLPointCloud2::ConstPtr& cloud);
   boost::signals2::connection connection_;
 };
 
@@ -153,7 +154,7 @@ class CloudRendererBW : public CloudRenderer {
   renderNew();
 
   void
-  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+  setCloud(const pcl::PCLPointCloud2::ConstPtr& cloud);
 
  private:
   boost::mutex cloud_mutex_;
@@ -178,7 +179,7 @@ class CloudRendererIZ : public CloudRenderer {
   renderNew();
 
   void
-  setCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
+  setCloud(const pcl::PCLPointCloud2::ConstPtr& cloud);
 
  private:
   boost::mutex cloud_mutex_;

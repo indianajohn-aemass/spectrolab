@@ -60,7 +60,7 @@ pcl::PCDRecorder::start ()
 {
   if (!valid_grabber_)
     return;
-  typedef void (sig_cb_cloud) (const sensor_msgs::PointCloud2::ConstPtr&);
+  typedef void (sig_cb_cloud) (const pcl::PCLPointCloud2::ConstPtr&);
   connection_ = grabber_->registerCallback<sig_cb_cloud> (
       boost::bind (&PCDRecorder::cloudCB, this, _1));
 }
@@ -75,13 +75,13 @@ bool
 pcl::PCDRecorder::setGrabber (const boost::shared_ptr<Grabber>& grabber)
 {
   grabber_ = grabber;
-  typedef void (sig_cb_cloud) (const sensor_msgs::PointCloud2::ConstPtr&);
+  typedef void (sig_cb_cloud) (const pcl::PCLPointCloud2::ConstPtr&);
   valid_grabber_ = grabber_->providesCallback<sig_cb_cloud> ();
   return valid_grabber_;
 }
 
 void
-pcl::PCDRecorder::cloudCB (const sensor_msgs::PointCloud2::ConstPtr& cloud)
+pcl::PCDRecorder::cloudCB (const pcl::PCLPointCloud2::ConstPtr& cloud)
 {
   pcl::PCDWriter writer;
   writer.writeBinaryCompressed (genNextFileName () + ".pcd", *cloud);

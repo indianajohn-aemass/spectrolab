@@ -154,7 +154,7 @@ pcl::MovieGrabber::runIO ()
 void
 pcl::MovieGrabber::handleFile (const std::string& file)
 {
-  sensor_msgs::PointCloud2Ptr cloud (new sensor_msgs::PointCloud2);
+    pcl::PCLPointCloud2::Ptr cloud (new pcl::PCLPointCloud2);
   Eigen::Vector4f origin;
   Eigen::Quaternionf rot;
   if (pcl::io::loadPCDFile (file, *cloud, origin, rot) < 0)
@@ -175,7 +175,7 @@ pcl::MovieGrabber::playOneFrame ()
 
 void
 pcl::MovieGrabber::handleCloud (
-    const sensor_msgs::PointCloud2ConstPtr& cloud,
+    const pcl::PCLPointCloud2::Ptr& cloud,
     const Eigen::Vector4f& origin, const Eigen::Quaternionf& rot)
 {
   if (!cloud_cb_->empty ())
@@ -184,7 +184,7 @@ pcl::MovieGrabber::handleCloud (
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr tcloud (
         new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromROSMsg (*cloud, *tcloud);
+    pcl::fromPCLPointCloud2(*cloud, *tcloud);
     tcloud->sensor_orientation_ = rot;
     tcloud->sensor_origin_ = origin;
     (*xyz_cb_) (tcloud);
@@ -193,7 +193,7 @@ pcl::MovieGrabber::handleCloud (
   {
     pcl::PointCloud<pcl::PointXYZI>::Ptr tcloud (
         new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg (*cloud, *tcloud);
+    pcl::fromPCLPointCloud2(*cloud, *tcloud);
     tcloud->sensor_orientation_ = rot;
     tcloud->sensor_origin_ = origin;
     (*xyzi_cb_) (tcloud);
@@ -202,7 +202,7 @@ pcl::MovieGrabber::handleCloud (
   {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr tcloud (
         new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::fromROSMsg (*cloud, *tcloud);
+    pcl::fromPCLPointCloud2(*cloud, *tcloud);
     tcloud->sensor_orientation_ = rot;
     tcloud->sensor_origin_ = origin;
     (*xyzrgb_cb_) (tcloud);
