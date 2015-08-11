@@ -132,7 +132,7 @@ void pcl::visualization::CloudPlayerWidget::setGrabber(
 
   cache_connection_.disconnect();
   typedef void (sig_cb_cloud)(
-      const boost::shared_ptr<const sensor_msgs::PointCloud2>&);
+      const boost::shared_ptr<const pcl::PCLPointCloud2>&);
   cache_connection_ = grabber->registerCallback<sig_cb_cloud>(
       boost::bind(&CloudPlayerWidget::cacheCloud, this, _1));
 
@@ -172,7 +172,7 @@ void pcl::visualization::CloudPlayerWidget::addCloudRenderer(
 }
 
 void pcl::visualization::CloudPlayerWidget::cacheCloud(
-    const sensor_msgs::PointCloud2ConstPtr& cloud) {
+    const pcl::PCLPointCloud2::ConstPtr& cloud) {
   cached_cloud_ = cloud;
 }
 
