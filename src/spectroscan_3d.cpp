@@ -61,19 +61,19 @@ using std::string;
 void print_debug_cout (const std::string& str);
 
 spectrolab::SpectroScan3D::SpectroScan3D () :
+    line_num_(DEFAULT_IMG_HEIGHT-1),
     current_scan_(new Scan (DEFAULT_IMG_HEIGHT, DEFAULT_IMG_WIDTH)),
+    running_(false),
     img_buffer_(1024),
-    io_service_ (), io_worker_(io_service_),
+    io_service_ (),
+    io_worker_(io_service_),
+    cmd_response_recieved_(false),
     cmd_response_(0),
-    frame_rate_timer_ ( io_service_)
-
+    cmd_timed_out_(0),
+    frame_rate_(4),
+    frames_in_last_second_(0),
+    frame_rate_timer_ (io_service_)
 {
-    cmd_timed_out_  = false;
-    cmd_response_recieved_  = false;
-    line_num_ = DEFAULT_IMG_HEIGHT - 1;
-    running_  = false;
-    frame_rate_  = 4;
-    frames_in_last_second_  = 0;
 }
 
 bool
