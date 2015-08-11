@@ -42,7 +42,7 @@
 #include <pcl/io/grabber.h>
 
 #include <pcl/io/movie_grabber.h>
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl/io/recorder.h>
 
 namespace pcl {
@@ -140,7 +140,7 @@ class PCL_EXPORTS Spectroscan3DGrabber : public Grabber {
 
   /** \brief sets the filter used before publishing the point cloud
    */
-  void setFilter(const FilterFunctT& funct) {
+  void setFilter(FilterFunctT& funct) {
     filter_ = funct;
   }
 
