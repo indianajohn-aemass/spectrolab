@@ -38,7 +38,7 @@
 #ifndef PCD_RECORDER_H_
 #define PCD_RECORDER_H_
 #include <pcl/io/recorder.h>
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 
 namespace pcl {
 
