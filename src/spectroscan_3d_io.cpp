@@ -41,7 +41,7 @@
 #include <pcl/point_types.h>
 
 #include <pcl/console/print.h>
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl/common/io.h>
 #include <pcl/exceptions.h>
 
