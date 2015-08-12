@@ -61,11 +61,18 @@ using std::string;
 void print_debug_cout (const std::string& str);
 
 spectrolab::SpectroScan3D::SpectroScan3D () :
-    io_service_ (), io_worker_ (io_service_), cmd_timed_out_ (false),
-    cmd_response_recieved_ (false), cmd_response_ (0), line_num_ (DEFAULT_IMG_HEIGHT - 1),
-    running_ (false), frame_rate_ (4), frames_in_last_second_ (0),
-    frame_rate_timer_ ( io_service_), current_scan_ ( new Scan (DEFAULT_IMG_HEIGHT, DEFAULT_IMG_WIDTH)),
-    img_buffer_ (1024)
+    line_num_(DEFAULT_IMG_HEIGHT-1),
+    current_scan_(new Scan (DEFAULT_IMG_HEIGHT, DEFAULT_IMG_WIDTH)),
+    running_(false),
+    img_buffer_(1024),
+    io_service_ (),
+    io_worker_(io_service_),
+    cmd_response_recieved_(false),
+    cmd_response_(0),
+    cmd_timed_out_(0),
+    frame_rate_(4),
+    frames_in_last_second_(0),
+    frame_rate_timer_ (io_service_)
 {
 }
 
@@ -240,7 +247,7 @@ spectrolab::SpectroScan3D::send (uint8_t* data, size_t size)
   cmd_timed_out_ = false;
   cmd_tx_socket_->send (ba::buffer (data, size));
   boost::asio::deadline_timer timer (io_service_);
-  timer.expires_from_now (boost::posix_time::seconds (1.5));
+  timer.expires_from_now (boost::posix_time::seconds (1));
   timer.async_wait (boost::bind (&SpectroScan3D::handleTimeout, this, _1));
   while (!cmd_response_recieved_ && !cmd_timed_out_)
   {
@@ -291,7 +298,7 @@ spectrolab::SpectroScan3D::handleCMDRead (
   }
 
   cmd_response_.resize(bytes_transferred);
-  for(int i=0; i<cmd_response_.size(); i++) cmd_response_[i]= cmd_buffer_[i];
+  for(size_t i=0; i<cmd_response_.size(); i++) cmd_response_[i]= cmd_buffer_[i];
   cmd_rx_socket_->async_receive (ba::buffer (cmd_buffer_),
       boost::bind (&SpectroScan3D::handleCMDRead, this, _1, _2));
   cmd_response_recieved_ = true;

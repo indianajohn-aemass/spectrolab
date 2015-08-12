@@ -38,7 +38,7 @@
 #ifndef PCD_RECORDER_H_
 #define PCD_RECORDER_H_
 #include <pcl/io/recorder.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <pcl/conversions.h>
 
 namespace pcl {
 
@@ -60,7 +60,7 @@ class PCL_EXPORTS PCDRecorder : public Recorder {
   boost::shared_ptr<Grabber> grabber_;
   boost::signals2::connection connection_;
   bool valid_grabber_;
-  void cloudCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
+  void cloudCB(const pcl::PCLPointCloud2::ConstPtr& cloud);
 };
 
 }

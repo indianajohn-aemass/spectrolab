@@ -45,7 +45,7 @@
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <pcl/conversions.h>
 
 namespace pcl {
 
@@ -121,7 +121,7 @@ class PCL_EXPORTS MovieGrabber : public Grabber {
   std::string
   getMovieDir();
 
-  typedef void (sig_pointcloud_cb)(const sensor_msgs::PointCloud2::ConstPtr&);
+  typedef void (sig_pointcloud_cb)(const pcl::PCLPointCloud2::ConstPtr&);
   typedef void (sig_xyz_cb)(const PointCloud<PointXYZ>::ConstPtr&);
   typedef void (sig_xyzi_cb)(const PointCloud<PointXYZI>::ConstPtr&);
   typedef void (sig_xyzrgb_cb)(const PointCloud<PointXYZRGB>::ConstPtr&);
@@ -156,7 +156,7 @@ class PCL_EXPORTS MovieGrabber : public Grabber {
    * must be called by handle file
    * publishes registered point clouds
    */
-  virtual void handleCloud(const sensor_msgs::PointCloud2ConstPtr& cloud,
+  virtual void handleCloud(const pcl::PCLPointCloud2::Ptr& cloud,
                            const Eigen::Vector4f& origin,
                            const Eigen::Quaternionf& rot);
 };

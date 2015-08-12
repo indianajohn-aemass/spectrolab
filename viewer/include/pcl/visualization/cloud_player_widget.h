@@ -113,8 +113,8 @@ Q_OBJECT
 
   QErrorMessage* error_msg_;
 
-  void cacheCloud(const sensor_msgs::PointCloud2ConstPtr& cloud);
-  sensor_msgs::PointCloud2ConstPtr cached_cloud_;
+  void cacheCloud(const pcl::PCLPointCloud2::ConstPtr& cloud);
+  pcl::PCLPointCloud2::ConstPtr cached_cloud_;
   boost::signals2::connection cache_connection_;
 
  public slots:

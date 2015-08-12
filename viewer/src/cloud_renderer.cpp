@@ -51,7 +51,7 @@ bool pcl::visualization::CloudRendererRange::setup(
     boost::shared_ptr<Grabber>& grabber) {
 
   valid_grabber_ = false;
-  typedef void (sig_cb)(const sensor_msgs::PointCloud2::ConstPtr&);
+  typedef void (sig_cb)(const pcl::PCLPointCloud2::ConstPtr&);
 
   if (!grabber->providesCallback<sig_cb>())
     return false;
@@ -75,9 +75,9 @@ void pcl::visualization::CloudRendererRange::renderNew() {
   if (cloud_ == NULL)
     return;
   pcl::visualization::PointCloudColorHandlerGenericField<
-      sensor_msgs::PointCloud2>::Ptr chand(
+      pcl::PCLPointCloud2>::Ptr chand(
       new pcl::visualization::PointCloudColorHandlerGenericField<
-          sensor_msgs::PointCloud2>(cloud_, field_name_));
+          pcl::PCLPointCloud2>(cloud_, field_name_));
 
   Eigen::Vector4f origin(0, 0, 0, 1);
   Eigen::Quaternionf rot = Eigen::Quaternionf::Identity();
@@ -88,7 +88,7 @@ void pcl::visualization::CloudRendererRange::renderNew() {
 }
 
 void pcl::visualization::CloudRendererRange::grabberCB(
-    const sensor_msgs::PointCloud2::ConstPtr& cloud) {
+    const pcl::PCLPointCloud2::ConstPtr& cloud) {
   {
     boost::unique_lock<boost::mutex> lock(cloud_mutex_);
     cloud_ = cloud;
@@ -151,10 +151,10 @@ void pcl::visualization::CloudRendererBW::grabberCB(
 }
 
 void pcl::visualization::CloudRendererBW::setCloud(
-    const sensor_msgs::PointCloud2ConstPtr& cloud) {
+    const pcl::PCLPointCloud2::ConstPtr& cloud) {
   pcl::PointCloud<pcl::PointXYZI>::Ptr tcloud(
       new pcl::PointCloud<pcl::PointXYZI>);
-  pcl::fromROSMsg(*cloud, *tcloud);
+  pcl::fromPCLPointCloud2(*cloud, *tcloud);
   cloud_ = tcloud;
 }
 
@@ -215,9 +215,9 @@ void pcl::visualization::CloudRendererIZ::grabberCB(
 }
 
 void pcl::visualization::CloudRendererIZ::setCloud(
-    const sensor_msgs::PointCloud2ConstPtr& cloud) {
+    const pcl::PCLPointCloud2::ConstPtr& cloud) {
   pcl::PointCloud<pcl::PointXYZI>::Ptr tcloud(
       new pcl::PointCloud<pcl::PointXYZI>);
-  pcl::fromROSMsg(*cloud, *tcloud);
+  pcl::fromPCLPointCloud2(*cloud, *tcloud);
   cloud_ = tcloud;
 }

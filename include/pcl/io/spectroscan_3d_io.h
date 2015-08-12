@@ -42,6 +42,7 @@
 #include <pcl/io/grabber.h>
 
 #include <pcl/io/movie_grabber.h>
+#include <pcl/conversions.h>
 #include <pcl/io/recorder.h>
 
 namespace pcl {
@@ -87,7 +88,7 @@ class PCL_EXPORTS Spectroscan3DGrabber : public Grabber {
 
   //define callback signature typedefs
   typedef void (sig_cb_cloud)(
-      const boost::shared_ptr<const sensor_msgs::PointCloud2>&);
+      const boost::shared_ptr<const pcl::PCLPointCloud2>&);
   typedef void (sig_cb_xyz_cloud)(
       const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZ> >&);
   typedef void (sig_cb_xyzi_cloud)(
@@ -139,7 +140,7 @@ class PCL_EXPORTS Spectroscan3DGrabber : public Grabber {
 
   /** \brief sets the filter used before publishing the point cloud
    */
-  void setFilter(const FilterFunctT& funct) {
+  void setFilter(FilterFunctT& funct) {
     filter_ = funct;
   }
 

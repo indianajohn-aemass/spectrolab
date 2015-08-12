@@ -41,7 +41,7 @@
 #include <pcl/point_types.h>
 
 #include <pcl/console/print.h>
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl/common/io.h>
 #include <pcl/exceptions.h>
 
@@ -133,7 +133,7 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
   {
     for (size_t c = 0; c < scan.cols (); c++, idx++)
     {
-      double range = (float) scan[idx].range;  
+      double range = (float) scan[idx].range;
       range = settings.range_resolution * range + settings.range_offset;
       if ( (range > settings.max_range) || (range < settings.min_range))
       {
@@ -142,17 +142,17 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
         cloud[idx].intensity = 0;
         continue;
       }
-      
+
       float dx = c - mx;
       float dy = r - my;
 
 	  float y_angle = dy * settings.y_angle_delta;
 	  float x_angle = A*sin(M_PI*dx/(scan.cols () + OVERSCAN))*cos(YANGLE_CONST - y_angle/4);	// correct sinusoidal scan pattern and input angle foreshortening
-	  
+
 	  cloud[idx].x = range * cos(y_angle) * sin(x_angle);
-      cloud[idx].y = range * sin(y_angle);	  
+      cloud[idx].y = range * sin(y_angle);
 	  cloud[idx].z = range * cos(y_angle) * cos(x_angle);
-	  
+
       float amp = ((float) scan[idx].amplitude);
       cloud[idx].intensity = amp / 1024.0f;
     }
@@ -237,8 +237,8 @@ pcl::Spectroscan3DGrabber::frameCB (const spectrolab::Scan::ConstPtr& scan,
   }
   if (!cloud_cb_->empty ())
   {
-    sensor_msgs::PointCloud2Ptr cloud (new sensor_msgs::PointCloud2);
-    pcl::toROSMsg (*filtered_xyzi, *cloud);
+    pcl::PCLPointCloud2::Ptr cloud (new pcl::PCLPointCloud2);
+    pcl::toPCLPointCloud2 (*filtered_xyzi, *cloud);
     (*cloud_cb_) (cloud);
   }
 }
@@ -277,8 +277,8 @@ pcl::Spectroscan3DMovieGrabber::handleFile (const std::string& file)
   PointCloud<pcl::PointXYZI>::Ptr xyzi (new pcl::PointCloud<pcl::PointXYZI>);
   rangeImageToCloud (*scan, *xyzi, settings_);
 
-  sensor_msgs::PointCloud2Ptr cloud (new sensor_msgs::PointCloud2);
-  pcl::toROSMsg<pcl::PointXYZI> (*xyzi, *cloud);
+  pcl::PCLPointCloud2::Ptr cloud (new pcl::PCLPointCloud2);
+  pcl::toPCLPointCloud2<pcl::PointXYZI> (*xyzi, *cloud);
   handleCloud (cloud, Eigen::Vector4f (0, 0, 0, 1),
       Eigen::Quaternionf::Identity ());
 }
