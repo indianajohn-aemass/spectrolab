@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(spectrolab)
-	
+
 #set the default path for built executables to the "bin" directory
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
@@ -11,16 +11,16 @@ include_directories( include)
 
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 ######################### External Libraries ###########################
-	
+
 find_package(PCL 1.6 REQUIRED COMPONENTS  io filters visualization)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 
-FIND_PACKAGE( Boost 1.48 COMPONENTS 
+FIND_PACKAGE( Boost 1.48 COMPONENTS
 					program_options filesystem thread
-					serialization system 
+					serialization system
 					REQUIRED )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 include_directories( include)
@@ -28,8 +28,8 @@ include_directories( include)
 
 
 ######################### Project Variables ############################
-	
-set(SPECTROLAB_DEP_LIBRARIES 
+
+set(SPECTROLAB_DEP_LIBRARIES
 	 ${PCL_LIBRARIES}
 	 ${Boost_LIBRARIES}
 	 ${QT_LIBRARIES}
@@ -56,13 +56,15 @@ add_library(pcl_spectrolab_io  src/spectroscan_3d_io.cpp
 							   src/pcd_recorder.cpp
 ${SPECTROLAB_HEADERS}
 							   )
-target_link_libraries( pcl_spectrolab_io 
-							${SPECTROLAB_DEP_LIBRARIES} 
+target_link_libraries( pcl_spectrolab_io
+							${SPECTROLAB_DEP_LIBRARIES}
 							spectrolab)
 
 
 add_subdirectory(tools)
-add_subdirectory(viewer)
+if (BUILD_VIEWER)
+    add_subdirectory(viewer)
+ENDIF()
 
 
 ##################### Installation $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -74,4 +76,4 @@ INSTALL(TARGETS  spectrolab pcl_spectrolab_io
 
 INSTALL(DIRECTORY include/spectrolab  DESTINATION include)
 
-	
+
