@@ -75,5 +75,6 @@ INSTALL(TARGETS  spectrolab pcl_spectrolab_io
 )
 
 INSTALL(DIRECTORY include/spectrolab  DESTINATION include)
+INSTALL(DIRECTORY include/pcl DESTINATION include)
 
 
