@@ -130,7 +130,8 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
 
   float mx = scan.cols () / 2.0f;
   float my = scan.rows () / 2.0f;
-  float A = X_SCAN_AMPL/(sin(M_PI*mx/(2*mx + OVERSCAN)))*M_PI/180;	// scan amplitude (in radians)
+  float default_x_angle_delta = 0.15625 / 180 * M_PI;
+  float A = settings.x_angle_delta/default_x_angle_delta * X_SCAN_AMPL/(sin(M_PI*mx/(2*mx + OVERSCAN)))*M_PI/180;	// scan amplitude (in radians)
 
   for (size_t r = 0, idx = 0; r < scan.rows (); r++)
   {
