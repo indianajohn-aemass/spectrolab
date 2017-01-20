@@ -67,7 +67,7 @@ pcl::SpectroscanSettings::load (std::string fname)
   ptree pt;
 
   double t_max_range, t_min_range, t_range_offset, t_y_ange_delta,
-      t_x_ange_delta;
+      t_x_ange_delta, t_range_resolution;
 
   // Load the ini file into the property tree. If reading fails
   // (cannot open file, parse error), an exception is thrown.
@@ -77,6 +77,7 @@ pcl::SpectroscanSettings::load (std::string fname)
     t_max_range = pt.get<double> ("max_range");
     t_min_range = pt.get<double> ("min_range");
     t_range_offset = pt.get<double> ("range_offset");
+    t_range_resolution = pt.get<double> ("range_resolution");
     t_y_ange_delta = pt.get<double> ("y_angle_delta");
     t_x_ange_delta = pt.get<double> ("x_angle_delta");
   }
@@ -87,6 +88,7 @@ pcl::SpectroscanSettings::load (std::string fname)
     return false;
   }
   range_offset = t_range_offset;
+  range_resolution = t_range_resolution;
   max_range = t_max_range;
   min_range = t_min_range;
   x_angle_delta = t_x_ange_delta;
@@ -106,6 +108,7 @@ pcl::SpectroscanSettings::save (std::string ofname)
   pt.put ("max_range", max_range);
   pt.put ("min_range", min_range);
   pt.put ("range_offset", range_offset);
+  pt.put ("range_resolution",range_resolution);
   pt.put ("y_angle_delta", y_angle_delta);
   pt.put ("x_angle_delta", x_angle_delta);
 
