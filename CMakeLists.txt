@@ -13,6 +13,9 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 ######################### External Libraries ###########################
 
 find_package(PCL 1.6 REQUIRED COMPONENTS  io filters visualization)
+IF (NOT NOCPP11)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+ENDIF()
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
