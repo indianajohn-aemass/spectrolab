@@ -45,7 +45,7 @@
 const int spectrolab::SpectroScan3D::IMG_RX_PORT_COMPUTER = 4002;
 const int spectrolab::SpectroScan3D::CMD_RX_PORT_COMPUTER = 4000;
 const int spectrolab::SpectroScan3D::CMD_TX_PORT_SCANNER = 4950;
-const int spectrolab::SpectroScan3D::CMD_TX_PORT_COMPUTER = 27;
+const int spectrolab::SpectroScan3D::CMD_TX_PORT_COMPUTER = 3000;
 
 const int spectrolab::SpectroScan3D::FIRMWARE_VERSION = 0x7b;
 
