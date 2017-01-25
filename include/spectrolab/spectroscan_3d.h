@@ -277,12 +277,12 @@ class SpectroScan3D {
   std::queue<std::vector<uint8_t> > line_queue_;
   void processLines();
 
+  boost::asio::io_service io_service_;
+  boost::asio::io_service::work io_worker_;
+
   boost::shared_ptr<SocketT> img_data_socket_;
   boost::shared_ptr<SocketT> cmd_tx_socket_;
   boost::shared_ptr<SocketT> cmd_rx_socket_;
-
-  boost::asio::io_service io_service_;
-  boost::asio::io_service::work io_worker_;
 
   void runFrameProc();
 
