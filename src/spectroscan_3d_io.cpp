@@ -36,6 +36,7 @@
  */
 #include <pcl/io/spectroscan_3d_io.h>
 #include <spectrolab/spectroscan_3d.h>
+#include <iostream>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -139,7 +140,13 @@ pcl::rangeImageToCloud (const spectrolab::Scan& scan,
     {
       double range = (float) scan[idx].range;
       range = settings.range_resolution * range + settings.range_offset;
-      if ( (range > settings.max_range) || (range < settings.min_range))
+      if ( (range > settings.max_range) ||
+           (range < settings.min_range) ||
+           ( r % 2 != 0 && c > 247) || // IMU data is stored at the end of alternating scan lines
+           ( r % 2 == 0 && c < 8) || // IMU data is stored at the beginning of alternate scan lines
+           (c == 0) || //sensor timestamp is stored on first pixel of each line
+           (c == 255) // sensor timestamp is stored on the last pixel of each line
+           )
       {
         cloud[idx].x = cloud[idx].y, cloud[idx].z =
             std::numeric_limits<float>::quiet_NaN ();
