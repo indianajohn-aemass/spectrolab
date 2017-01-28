@@ -85,7 +85,7 @@ spectrolab::SpectroScan3D::open (const boost::asio::ip::address& address)
       new SocketT (io_service_,
           ba::ip::udp::endpoint (boost::asio::ip::udp::v4 (),
               CMD_RX_PORT_COMPUTER)));
-  cmd_rx_socket_->async_receive (ba::buffer (cmd_buffer_),
+  cmd_rx_socket_->async_receive (ba::buffer (cmd_buffer_,50),
       boost::bind (&SpectroScan3D::handleCMDRead, this, _1, _2));
 
   this->cmd_tx_socket_.reset (
@@ -100,7 +100,7 @@ spectrolab::SpectroScan3D::open (const boost::asio::ip::address& address)
       new SocketT (io_service_,
           ba::ip::udp::endpoint (boost::asio::ip::udp::v4 (),
               IMG_RX_PORT_COMPUTER)));
-  img_data_socket_->async_receive (ba::buffer (img_buffer_),
+  img_data_socket_->async_receive (ba::buffer (img_buffer_,1024),
       boost::bind (&SpectroScan3D::handleImgFrame, this, _1, _2));
 
   io_thread_ = boost::thread (boost::bind (&SpectroScan3D::runIO, this));
