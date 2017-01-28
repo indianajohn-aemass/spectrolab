@@ -121,6 +121,33 @@ class Scan {
     return pixel_data_[idx];
   }
 
+  void getOdometry(const uint32_t &row,
+                   uint32_t &deltaAngleX, uint32_t &deltaAngleY, uint32_t &deltaAngleZ,
+                   uint32_t &deltaVelocityX, uint32_t &deltaVelocityY, uint32_t &deltaVelocityZ,
+                   uint32_t &imuTimestamp)
+  {
+      if (row % 2 == 0)
+      {
+          imuTimestamp = (uint32_t) *( (uint32_t*) & (*this)(row,1) );
+          deltaVelocityZ = (uint32_t) *( (uint32_t*) & (*this)(row,2) );
+          deltaVelocityY = (uint32_t) *( (uint32_t*) & (*this)(row,3) );
+          deltaVelocityX = (uint32_t) *( (uint32_t*) & (*this)(row,4) );
+          deltaAngleZ = (uint32_t) *( (uint32_t*) & (*this)(row,5) );
+          deltaAngleY = (uint32_t) *( (uint32_t*) & (*this)(row,6) );
+          deltaAngleX = (uint32_t) *( (uint32_t*) & (*this)(row,7) );
+      }
+      else
+      {
+          deltaAngleX = (uint32_t) *( (uint32_t*) & (*this)(row,248) );
+          deltaAngleY = (uint32_t) *( (uint32_t*) & (*this)(row,249) );
+          deltaAngleZ = (uint32_t) *( (uint32_t*) & (*this)(row,250) );
+          deltaVelocityX = (uint32_t) *( (uint32_t*) & (*this)(row,251) );
+          deltaVelocityY = (uint32_t) *( (uint32_t*) & (*this)(row,252) );
+          deltaVelocityZ = (uint32_t) *( (uint32_t*) & (*this)(row,253) );
+          imuTimestamp = (uint32_t) *( (uint32_t*) & (*this)(row,254) );
+      }
+  }
+
   void
   save(std::string fname) const;
 
