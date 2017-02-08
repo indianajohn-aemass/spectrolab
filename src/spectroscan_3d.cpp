@@ -177,6 +177,8 @@ spectrolab::SpectroScan3D::start ()
 void
 spectrolab::SpectroScan3D::stop ()
 {
+  if (!running_)
+    return;
   sendFirmwareCmd (LASER_OUTPUT_OFF);
   sendFirmwareCmd (LASER_TEC_OFF);
   sendFirmwareCmd (LASER_POWER_SUPPLY_OFF);
