@@ -182,6 +182,9 @@ spectrolab::SpectroScan3D::stop ()
   sendFirmwareCmd (LASER_POWER_SUPPLY_OFF);
   sendFirmwareCmd (HIGH_VOLTAGE_OFF);
   sendFirmwareCmd (RESET);
+  line_queue_condition_.notify_all ();
+  io_service_.stop ();
+  io_thread_.join ();
   running_ = false;
 }
 
@@ -256,6 +259,7 @@ spectrolab::SpectroScan3D::send (uint8_t* data, size_t size)
   if (cmd_timed_out_)
   {
     cmd_timed_out_ = false;
+    running_ = false;
     throw TimeoutException ();
   }
   else
@@ -273,9 +277,6 @@ spectrolab::SpectroScan3D::~SpectroScan3D ()
 {
   if (isRunning ())
     stop ();
-  line_queue_condition_.notify_all ();
-  io_service_.stop ();
-  io_thread_.join ();
 }
 
 boost::signals2::connection spectrolab::SpectroScan3D::registerCallBack (
