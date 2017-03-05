@@ -187,9 +187,12 @@ spectrolab::SpectroScan3D::stop ()
     line_queue_condition_.notify_all ();
   }
   running_ = false;
-  this->cmd_rx_socket_->close();
-  this->cmd_tx_socket_->close();
-  this->img_data_socket_->close();
+  if ( this->cmd_rx_socket_)
+    this->cmd_rx_socket_->close();
+  if (this->cmd_tx_socket_)
+    this->cmd_tx_socket_->close();
+  if (this->img_data_socket_)
+    this->img_data_socket_->close();
   io_service_.stop ();
   io_thread_.join ();
 }
