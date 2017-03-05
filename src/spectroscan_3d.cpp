@@ -177,17 +177,21 @@ spectrolab::SpectroScan3D::start ()
 void
 spectrolab::SpectroScan3D::stop ()
 {
-  if (!running_)
-    return;
-  sendFirmwareCmd (LASER_OUTPUT_OFF);
-  sendFirmwareCmd (LASER_TEC_OFF);
-  sendFirmwareCmd (LASER_POWER_SUPPLY_OFF);
-  sendFirmwareCmd (HIGH_VOLTAGE_OFF);
-  sendFirmwareCmd (RESET);
-  line_queue_condition_.notify_all ();
+  if (running_)
+  {
+    sendFirmwareCmd (LASER_OUTPUT_OFF);
+    sendFirmwareCmd (LASER_TEC_OFF);
+    sendFirmwareCmd (LASER_POWER_SUPPLY_OFF);
+    sendFirmwareCmd (HIGH_VOLTAGE_OFF);
+    sendFirmwareCmd (RESET);
+    line_queue_condition_.notify_all ();
+  }
+  running_ = false;
+  this->cmd_rx_socket_->close();
+  this->cmd_tx_socket_->close();
+  this->img_data_socket_->close();
   io_service_.stop ();
   io_thread_.join ();
-  running_ = false;
 }
 
 void
@@ -277,8 +281,7 @@ spectrolab::SpectroScan3D::isRunning () const
 
 spectrolab::SpectroScan3D::~SpectroScan3D ()
 {
-  if (isRunning ())
-    stop ();
+  stop ();
 }
 
 boost::signals2::connection spectrolab::SpectroScan3D::registerCallBack (
