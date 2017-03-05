@@ -254,7 +254,8 @@ spectrolab::SpectroScan3D::send (uint8_t* data, size_t size)
 
   cmd_response_recieved_ = false;
   cmd_timed_out_ = false;
-  cmd_tx_socket_->send (ba::buffer (data, size));
+  boost::system::error_code ignored_error;
+  cmd_tx_socket_->send (ba::buffer (data, size),boost::asio::socket_base::message_flags(),ignored_error);
   boost::asio::deadline_timer timer (io_service_);
   timer.expires_from_now (boost::posix_time::seconds (1));
   timer.async_wait (boost::bind (&SpectroScan3D::handleTimeout, this, _1));
